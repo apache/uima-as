@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+-->
+
+<!-- This pom serves as the release top level project
+     for the multi-module project UIMA-AS
+ -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.apache.uima</groupId>
+    <artifactId>uima-as-parent</artifactId>
+    <version>2.4.2</version>
+    <relativePath>uima-as-parent/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>uima-as</artifactId>
+  <packaging>pom</packaging>
+  <version>2.4.2</version>
+  <name>Apache UIMA-AS: ${project.artifactId}</name>
+  <description>The top project for UIMA-AS</description>
+  <url>${uimaWebsiteUrl}</url>
+
+  <!-- Special inheritance note
+       even though the <scm> element that follows is exactly the
+       same as those in super poms, it cannot be inherited because
+       there is some special code that computes the connection elements
+       from the chain of parent poms, if this is omitted.
+
+       Keeping this a bit factored allows cutting/pasting the <scm>
+       element, and just changing the following two properties -->
+  <scm>
+    <connection>
+      scm:svn:http://svn.apache.org/repos/asf/uima/uima-as/tags/-rc1
+    </connection>
+    <developerConnection>
+      scm:svn:https://svn.apache.org/repos/asf/uima/uima-as/tags/-rc1
+    </developerConnection>
+    <url>
+      http://svn.apache.org/viewvc/uima/uima-as/tags/-rc1
+    </url>
+  </scm>
+
+  <properties>
+    <jiraVersion>12323591</jiraVersion> <!-- for 2.4.0AS -->  
+    <uimaScmProject>${project.artifactId}</uimaScmProject>
+    <assemblyFinalName>uima-as-${project.version}</assemblyFinalName> 
+ 
+  </properties>
+  
+  <!-- override pom setting in the build project. JIRA 5.1 needs different URL -->
+  <issueManagement>
+    <system>Jira</system>
+    <url>https://issues.apache.org/jira/browse/UIMA</url>
+  </issueManagement>
+  
+  <!-- dependencies used during assembly -->
+	<dependencies>
+    <!-- uima-as -->
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-as-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-as-activemq</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-as-jms</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-as-camel</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-ep-deployeditor</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-ep-runtime-deployeditor</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-as-osgi-runtime</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-test-util</artifactId>
+      <version>${uimajDependencyVersion}</version>
+    </dependency>
+
+
+    <dependency>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+    </dependency> 
+
+	<!--
+		Active MQ Stuff
+	-->
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-all</artifactId>
+    </dependency> 
+
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-jaas</artifactId>
+    </dependency>
+  
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-spring</artifactId>
+    </dependency> 
+
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-optional</artifactId>
+      <exclusions> 
+			 <exclusion>  
+                 <groupId>axis</groupId>
+                 <artifactId>axis</artifactId>
+             </exclusion>
+      </exclusions> 
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>kahadb</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jms_1.1_spec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
+    </dependency>
+
+
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-servlet_2.5_spec</artifactId>
+    </dependency>
+
+
+    
+	</dependencies>
+    
+	<build>
+    <resources />
+    <!-- pluginManagement-->
+		<plugins>
+		
+      <!-- UIMA-AS includes the base UIMA binary distribution
+           We get an unzipped version of that and unpack it into
+           target/uimaj -->
+
+      <!--  must come before the unpack -->      
+      <plugin>
+        <groupId>org.apache.uima</groupId>
+        <artifactId>uima-build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>prepare-package</phase>
+            <goals><goal>copy-from-apache-dist</goal></goals>
+            <configuration>
+              <version>${uimajDependencyVersion}</version>
+              <artifactId>uimaj</artifactId>
+            </configuration>
+          </execution>
+        </executions> 
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <!-- use the dependency:unpack goal to unpack the 
+                 base binary uimaj sdk distribution -->
+            <id>unpack Uimaj Bin</id>
+            <phase>prepare-package</phase>
+            <goals><goal>unpack</goal></goals>
+            <configuration>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.apache.uima</groupId>
+                  <artifactId>uimaj</artifactId>
+                  <version>${uimajDependencyVersion}</version>
+                  <type>zip</type>
+                  <classifier>bin</classifier>
+                  <outputDirectory>${project.build.directory}/uimaj</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+          
+          <execution>
+						<!-- use the dependency:unpack goal to unpack the AMQ binary release -->
+						<id>unpack-activemq-distro-win</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.apache.activemq</groupId>
+									<artifactId>apache-activemq</artifactId>
+									<version>${org.apache.activemq.version}</version>
+									<type>zip</type>
+									<classifier>bin</classifier>
+									<outputDirectory>${project.build.directory}/apache-activemq-win</outputDirectory>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+                    <execution>
+						<!-- use the dependency:unpack goal to unpack the AMQ binary release -->
+						<id>unpack-activemq-distro-linux</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.apache.activemq</groupId>
+									<artifactId>apache-activemq</artifactId>
+									<version>${org.apache.activemq.version}</version>
+									<type>tar.gz</type>
+									<classifier>bin</classifier>
+									<outputDirectory>${project.build.directory}/apache-activemq-linux</outputDirectory>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+          
+          
+        </executions>        
+      </plugin>
+      
+      <!-- This java doc config is for building the ones distributed with the bin packaging, and also 
+           posted on our website.
+       -->     
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>javadocs-distr</id>
+						<phase>prepare-package</phase> <!-- must be before assembly -->
+            <!--phase>deploy</phase-->   <!-- comment above and uncomment to disable javadocs, for testing/experimentation, with assembly:assembly-->
+						<goals>
+							<goal>javadoc</goal>
+						</goals>
+						<configuration>
+              <quiet>true</quiet>
+							<groups>
+								<group>
+									<title>Packages</title>
+									<packages>*</packages>
+								</group>
+							</groups>
+              <!--verbose>true</verbose-->
+							<sourcepath>
+                uimaj-as-core/src/main/java:uimaj-as-activemq/src/main/java:uimaj-as-camel/src/main/java:uima-as-jms/src/main/java
+              </sourcepath>
+              <subpackages>org.apache.uima</subpackages>
+							<excludePackageNames>*.aae.*</excludePackageNames>
+							<!-- add a few classes in impl packages that are directly used by user code -->
+              <additionalparam>
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/aae/jmx/monitor/BasicUimaJmxMonitorListener.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/aae/jmx/monitor/JmxMonitorListener.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/aae/jmx/monitor/ServiceMetrics.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/aae/jmx/monitor/SingleLineUimaJmxMonitorListener.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/aae/monitor/statistics/AnalysisEnginePerformanceMetrics.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/aae/client/UimaAsynchronousEngine.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/aae/client/UimaAsBaseCallbackListener.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/aae/client/UimaASStatusCallbackListener.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/aae/client/UimaASProcessStatus.java                                                                                     
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/aae/error/ErrorResult.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/aae/error/ErrorResultComponentPath.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/aae/error/ErrorResultTDs.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/resourceSpecifier/factory/DeploymentDescriptorFactory.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/resourceSpecifier/factory/UimaASPrimitiveDeploymentDescriptor.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/resourceSpecifier/factory/UimaASAggregateDeploymentDescriptor.java
+                ${basedir}/uimaj-as-core/src/main/java/org/apache/uima/resourceSpecifier/factory/ServiceContext.java
+                
+                
+              </additionalparam>
+              <!--  Link these to the uimaj javadocs on apache.org -->
+              <links>
+                <link>http://uima.apache.org/d/uimaj-${uimajDependencyVersion}/apidocs</link>
+              </links>
+							<doctitle>Apache UIMA Async Scaleout Java SDK ${project.version} User-Level API Documentation</doctitle>
+							<windowtitle>Apache UIMA-AS Java SDK ${project.version} User-Level API Documentation</windowtitle>
+						</configuration>
+					</execution>
+				</executions>
+
+			</plugin>
+
+      <!-- https://issues.apache.org/jira/browse/UIMA-2008 -->
+      <!-- no maven deployment of this project's artifacts -->
+      <!-- binary build artifact deployed from apache mirror system after release -->
+      <!-- plugin>
+        <artifactId>maven-deploy-plugin</artifactId>      
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate checksums for binary artifacts</id>
+            <goals><goal>run</goal></goals>
+            <phase>verify</phase>
+            <configuration>
+              <target>
+                <checksum algorithm="sha1" format="MD5SUM">
+                  <fileset dir="${project.build.directory}">
+                    <include name="*.zip" />
+                    <include name="*.gz" />
+                  </fileset>
+                </checksum>
+                <checksum algorithm="md5" format="MD5SUM">
+                  <fileset dir="${project.build.directory}">
+                    <include name="*.zip" />
+                    <include name="*.gz" />
+                  </fileset>
+                </checksum>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin -->
+		
+	<plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.5</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+            <overwrite>true</overwrite>
+              <outputDirectory>target/maven-shared-archive-resources/META-INF</outputDirectory>
+              <resources>          
+                <resource>
+                  <directory>.</directory>
+				  <includes>
+                     <include>LICENSE</include>
+                     <include>NOTICE</include>
+                  </includes>                  
+                </resource>
+              </resources>              
+            </configuration>            
+          </execution>
+        </executions>
+      </plugin>	
+ 
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-changes-plugin</artifactId>
+          <version>2.8</version>
+          <executions>
+            <execution>
+              <id>default-cli</id>
+              <goals><goal>jira-report</goal></goals>
+              
+              <phase>generate-resources</phase>        
+              <configuration>
+                <useJql>true</useJql>
+                <fixVersionIds>${jiraVersion}</fixVersionIds>
+                <component>Async Scaleout</component>
+                <columnNames>Type,Key,Status,Summary</columnNames>
+                <resolution>Fixed</resolution>
+                <status>Closed,Resolved</status>
+                <sortColumnNames>Type, Status, Key</sortColumnNames>
+                <outputDirectory>${basedir}/issuesFixed/</outputDirectory>
+                <maxEntries>1000</maxEntries> 
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      	<plugin>
+	        <!-- run Release Audit Tool (RAT) on src and bin distrs -->       
+        	<groupId>org.apache.rat</groupId>
+        	<artifactId>apache-rat-plugin</artifactId>
+        	<executions>
+          		<execution>
+            		<id>default-cli</id>
+            		<configuration>
+              			<excludes combine.children="append">
+              			    
+                			<exclude>src/test/resources/deploy/expected/*.*</exclude> <!-- test data -->
+                			<exclude>src/test/resources/deploy/expected/envVar/*.*</exclude> <!-- test data -->
+                			<exclude>src/main/examples/run_configuration/*.launch</exclude> <!-- eclipse launch configurations -->
+                			<exclude>LicNoticeAnalysisActiveMQ.txt</exclude>
+                			             
+
+              			    <!--  workaround https://issues.apache.org/jira/browse/RAT-97 -->
+              			    <exclude>aggregate-uima-as/**</exclude>
+              			    <exclude>aggregate-uima-as-eclipse-plugins/**</exclude>
+              			    <exclude>uima-as-docbooks/**</exclude>
+              			    <exclude>uima-as-eclipse-update-site/**</exclude>
+              			    <exclude>uima-as-parent/**</exclude>
+              			    <exclude>uimaj-as-activemq/**</exclude>
+              			    <exclude>uimaj-as-camel/**</exclude>
+              			    <exclude>uimaj-as-core/**</exclude>
+              			    <exclude>uimaj-as-jms/**</exclude>
+              			    <exclude>uimaj-as-osgi-runtime/**</exclude>
+              			    <exclude>uimaj-eclipse-feature-deployeditor/**</exclude>
+              			    <exclude>uimaj-ep-deployeditor/**</exclude>
+              			    <exclude>uimaj-ep-runtime-deployeditor/**</exclude>
+              			    <exclude>uima-as-docbooks/**</exclude>
+              			    
+              			</excludes>
+            		</configuration>
+          		</execution>
+        	</executions>
+      	</plugin>
+      	
+
+	    </plugins>
+	  <!-- /pluginManagement-->	
+	</build>
+
+
+  <profiles>
+    <profile>
+      <id>apache-release</id>
+      <build>
+        <plugins>
+        <!-- Run jira report -->
+        <!-- depends on having -DjiraVersion set -->
+          <plugin>
+            <artifactId>maven-changes-plugin</artifactId>
+            <version>2.8</version>
+            <executions>
+              <execution>
+                <id>default-cli</id>
+                <configuration>
+                  <fixVersionIds>${jiraVersion}</fixVersionIds>
+                  <sortColumnNames>Type, Status, Key</sortColumnNames>
+                </configuration>
+              </execution>
+            </executions>  
+          </plugin>
+        
+        </plugins>
+      </build>
+    </profile>
+    
+  </profiles>
+
+  <modules>
+    <module>uima-as-parent</module>
+    <module>aggregate-uima-as</module>
+  </modules>
+</project>

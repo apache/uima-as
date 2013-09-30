@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--==================================================================================-->
+ <!-- Generated from                                                                             -->
+ <!-- file:/C:/a/Eclipse/apache/uima-as-distr/src/test/resources/deploy/Deploy_MeetingFinder.xml -->
+ <!-- 2 April, 2009, 11:37:38 A.M.                                                               -->
+ <!--==================================================================================-->
+ <!DOCTYPE beans
+  PUBLIC "-//Spring//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+   <!-- Factory for specific external queue broker:  -->
+   <!--            tcp://localhost:61616             -->
+   <bean id="qBroker_tcp_c__ss_localhost_c_61616"
+         class="org.apache.activemq.ActiveMQConnectionFactory">
+      <property name="brokerURL" value="tcp://localhost:61616"/>
+      <property name="prefetchPolicy" ref="prefetchPolicy"/>
+   </bean>
+
+   <!-- Factory for specific external queue broker:  -->
+   <!--            tcp://localhost:61616             -->
+   <bean id="qBroker_tcp_c__ss_localhost_c_61616-reply"
+         class="org.apache.activemq.ActiveMQConnectionFactory">
+      <property name="brokerURL" value="tcp://localhost:61616"/>
+      <property name="prefetchPolicy" ref="prefetchPolicy-reply"/>
+   </bean>
+
+   <!-- Creates an instance of the ResourceManager -->
+   <bean id="resourceManager" class="org.apache.uima.aae.UimaClassFactory"
+         factory-method="produceResourceManager"
+         singleton="true"/>
+
+   <!-- Creates an instance of the CasManager  -->
+   <bean id="casManager" class="org.apache.uima.aae.AsynchAECasManager_impl"
+         singleton="true">
+      <constructor-arg index="0" ref="resourceManager"/>
+
+     <!-- Defines how many CASes will be in the CAS pool -->
+     <property name="casPoolSize" value="1"/>
+     <property name="disableJCasCache" value="false"/>
+
+     <!-- Initial heap size for CASes  -->
+     <property name="initialFsHeapSize" value="2000000"/>
+   </bean>
+   <bean id="placeholderSubstitution"
+         class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+      <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/>
+   </bean>
+
+   <!-- Creates a Shared Cache -->
+   <bean id="inProcessCache" class="org.apache.uima.aae.InProcessCache"/>
+
+   <!-- Create prefetch policy -->
+   <bean id="prefetchPolicy" class="org.apache.activemq.ActiveMQPrefetchPolicy">
+      <property name="queuePrefetch" value="0"/>
+   </bean>
+   <bean id="prefetchPolicy-reply" class="org.apache.activemq.ActiveMQPrefetchPolicy">
+      <property name="queuePrefetch" value="1"/>
+   </bean>
+ 
+   <!--=================================-->
+   <!--    E r r o r   D e t a i l s    -->
+   <!--=================================-->
+   <bean id="errorConfig__TCnt_0_TWndw_0_Action_"
+         class="org.apache.uima.aae.error.Threshold"
+         singleton="true">
+      <property name="threshold" value="0"/>
+      <property name="window" value="0"/>
+      <property name="action" value=""/>
+   </bean>
+
+   <bean id="errorConfig__Action_" class="org.apache.uima.aae.error.Threshold"
+         singleton="true">
+      <property name="action" value=""/>
+   </bean>
+
+   <bean id="errorConfig__Rtry_0_Action_terminate"
+         class="org.apache.uima.aae.error.Threshold"
+         singleton="true">
+      <property name="maxRetries" value="0"/>
+      <property name="action" value="terminate"/>
+   </bean>
+
+   <bean id="errorConfig__Rtry_0_Continue_false_TCnt_0_TWndw_0_Action_"
+         class="org.apache.uima.aae.error.Threshold"
+         singleton="true">
+      <property name="maxRetries" value="0"/>
+      <property name="continueOnRetryFailure" value="false"/>
+      <property name="threshold" value="0"/>
+      <property name="window" value="0"/>
+      <property name="action" value=""/>
+   </bean>
+
+   <bean id="errorConfig__Rtry_0_Continue_false_TCnt_100_TWndw_1000_Action_terminate"
+         class="org.apache.uima.aae.error.Threshold"
+         singleton="true">
+      <property name="maxRetries" value="0"/>
+      <property name="continueOnRetryFailure" value="false"/>
+      <property name="threshold" value="100"/>
+      <property name="window" value="1000"/>
+      <property name="action" value="terminate"/>
+   </bean>
+
+ 
+   <!--input queue for service-->
+   <bean id="top_level_input_queue_service_1"
+         class="org.apache.activemq.command.ActiveMQQueue">
+      <constructor-arg index="0" value="MeetingFinderQueue"/>
+   </bean>
+   <!--=======================================-->
+   <!-- Async Aggregate: MeetingFinderQueue_1 -->
+   <!--=======================================-->
+   <bean id="asAggr_ctlr_MeetingFinderQueue_1"
+         class="org.apache.uima.aae.controller.AggregateAnalysisEngineController_impl"
+         init-method="initialize">
+      <constructor-arg index="0">
+         <null/>
+      </constructor-arg>
+      <constructor-arg index="1" value="MeetingFinderQueue"/>
+      <constructor-arg index="2"
+                       value="file:/C:/a/Eclipse/apache/uima-as/src/test/resources/descriptors/meetingFinder/MeetingFinderAggregate.xml"/>
+      <constructor-arg index="3" ref="casManager"/>
+      <constructor-arg index="4" ref="inProcessCache"/>
+      <constructor-arg index="5" ref="delegate_map_MeetingFinderQueue_1"/>
+      <property name="outputChannel" ref="outChnl_MeetingFinderQueue_1"/>
+      <property name="serviceEndpointName" value="top_level_input_queue_service_1"/>
+      <property name="controllerBeanName" value="asAggr_ctlr_MeetingFinderQueue_1"/>
+      <property name="errorHandlerChain" ref="err_hdlr_chn_MeetingFinderQueue_1"/>
+      <property name="flowControllerDescriptor"
+                value="*importByName:org.apache.uima.flow.FixedFlowController"/>
+   </bean>
+ 
+   <!--===================================================-->
+   <!--   M E S S A G E    H A N D L E R: aggregate_input -->
+   <!--  for controller: asAggr_ctlr_MeetingFinderQueue_1 -->
+   <!--===================================================-->
+   
+   <bean id="aggregate_input_metaMsgHandler_MeetingFinderQueue_1"
+         class="org.apache.uima.aae.handler.input.MetadataRequestHandler_impl">
+      <constructor-arg index="0" value="MetadataRequestHandler"/>
+      <property name="controller" ref="asAggr_ctlr_MeetingFinderQueue_1"/>
+      <property name="delegate"
+                ref="aggregate_input_processRequestHandler_MeetingFinderQueue_1"/>
+   </bean>
+
+   <bean id="aggregate_input_processRequestHandler_MeetingFinderQueue_1"
+         class="org.apache.uima.aae.handler.input.ProcessRequestHandler_impl">
+      <constructor-arg index="0" value="ProcessRequestHandler"/>
+      <property name="controller" ref="asAggr_ctlr_MeetingFinderQueue_1"/>
+   </bean>
+
+   <!-- Create the endpoints + output channels, one per delegate -->
+   
+
+   <!-- ==================================== -->
+   <!--           CollectionReader           -->
+   <!--        ** Delegate Endpoint **       -->
+   <!-- ==================================== -->
+   <bean id="endpt_CollectionReader_1.1"
+         class="org.apache.uima.aae.controller.Endpoint_impl">
+
+     <!--     Broker URI     -->
+     <property name="serverURI" value="vm://localhost"/>
+
+     <!-- Delegate key name or remote queue name -->
+     <property name="endpoint" value="inQ_CollectionReader_1.1"/>
+      <property name="processParentLast" value="false"/>
+      <property name="disableJCasCache" value="false"/>
+
+     <!--      Timeouts      -->
+     <property name="metadataRequestTimeout" value="60000"/>
+      <property name="processRequestTimeout" value="0"/>
+      <property name="collectionProcessCompleteTimeout" value="0"/>
+      <property name="concurrentRequestConsumers" value="1"/>
+      <property name="concurrentReplyConsumers" value="1"/>
+   </bean>
+
+   <!-- ==================================== -->
+   <!--           TokenAndSentence           -->
+   <!--        ** Delegate Endpoint **       -->
+   <!-- ==================================== -->
+   <bean id="endpt_TokenAndSentence_1.2"
+         class="org.apache.uima.aae.controller.Endpoint_impl">
+
+     <!--     Broker URI     -->
+     <property name="serverURI" value="vm://localhost"/>
+
+     <!-- Delegate key name or remote queue name -->
+     <property name="endpoint" value="inQ_TokenAndSentence_1.2"/>
+
+     <!--      Timeouts      -->
+     <property name="metadataRequestTimeout" value="60000"/>
+      <property name="processRequestTimeout" value="100000"/>
+      <property name="collectionProcessCompleteTimeout" value="0"/>
+      <property name="concurrentRequestConsumers" value="1"/>
+      <property name="concurrentReplyConsumers" value="1"/>
+   </bean>
+
+   <!-- ==================================== -->
+   <!--           MeetingDetector            -->
+   <!--        ** Delegate Endpoint **       -->
+   <!-- ==================================== -->
+   <bean id="endpt_MeetingDetector_1.3"
+         class="org.apache.uima.aae.controller.Endpoint_impl">
+
+     <!--     Broker URI     -->
+     <property name="serverURI" value="vm://localhost"/>
+
+     <!-- Delegate key name or remote queue name -->
+     <property name="endpoint" value="inQ_MeetingDetector_1.3"/>
+
+     <!--      Timeouts      -->
+     <property name="metadataRequestTimeout" value="60000"/>
+      <property name="processRequestTimeout" value="0"/>
+      <property name="collectionProcessCompleteTimeout" value="0"/>
+      <property name="concurrentRequestConsumers" value="1"/>
+      <property name="concurrentReplyConsumers" value="1"/>
+   </bean>
+
+   <!-- ==================================== -->
+   <!--             CasConsumer              -->
+   <!--        ** Delegate Endpoint **       -->
+   <!-- ==================================== -->
+   <bean id="endpt_CasConsumer_1.4" class="org.apache.uima.aae.controller.Endpoint_impl">
+
+     <!--     Broker URI     -->
+     <property name="serverURI" value="vm://localhost"/>
+
+     <!-- Delegate key name or remote queue name -->
+     <property name="endpoint" value="inQ_CasConsumer_1.4"/>
+
+     <!--      Timeouts      -->
+     <property name="metadataRequestTimeout" value="60000"/>
+      <property name="processRequestTimeout" value="0"/>
+      <property name="collectionProcessCompleteTimeout" value="0"/>
+      <property name="concurrentRequestConsumers" value="1"/>
+      <property name="concurrentReplyConsumers" value="1"/>
+   </bean>
+
+   <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+   <!-- JMS msg listener for input queue for:  -->
+   <!--    top_level_input_queue_service_1     -->
+   <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+   <bean id="asAggr_input_q_listenerID_MeetingFinderQueue_1"
+         class="org.apache.uima.adapter.jms.activemq.JmsInputChannel">
+      <property name="messageHandler" ref="aggregate_input_metaMsgHandler_MeetingFinderQueue_1"/>
+      <property name="endpointName" value="top_level_input_queue_service_1"/>
+      <property name="controller" ref="asAggr_ctlr_MeetingFinderQueue_1"/>
+      <property name="listenerContainer" ref="asAggr_input_msgLsnrCntnr_MeetingFinderQueue_1"/>
+   </bean>
+
+   <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+   <!-- JMS msg listener container for input queue for:  -->
+   <!--         top_level_input_queue_service_1          -->
+   <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+   <bean id="asAggr_input_msgLsnrCntnr_MeetingFinderQueue_1"
+         class="org.apache.uima.adapter.jms.activemq.UimaDefaultMessageListenerContainer">
+
+     <!-- Define number of JMS Consumers -->
+     <property name="concurrentConsumers" value="1"/>
+
+     <!--    input Queue     -->
+     <property name="destination" ref="top_level_input_queue_service_1"/>
+
+     <!-- POJO to delegate JMS Messages to -->
+     <property name="messageListener" ref="asAggr_input_q_listenerID_MeetingFinderQueue_1"/>
+      <property name="connectionFactory" ref="qBroker_tcp_c__ss_localhost_c_61616"/>
+      <property name="messageSelector" value="Command=2000 OR Command=2002"/>
+   </bean>
+
+   <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+   <!-- GetMeta JMS msg listener container for input queue for:  -->
+   <!--             top_level_input_queue_service_1              -->
+   <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+   <bean id="asAggr_input_msgLsnrCntnr_MeetingFinderQueue_1_getMeta"
+         class="org.apache.uima.adapter.jms.activemq.UimaDefaultMessageListenerContainer">
+
+     <!-- Define number of JMS Consumers -->
+     <property name="concurrentConsumers" value="1"/>
+
+     <!--    input Queue     -->
+     <property name="destination" ref="top_level_input_queue_service_1"/>
+
+     <!-- POJO to delegate JMS Messages to -->
+     <property name="messageListener" ref="asAggr_input_q_listenerID_MeetingFinderQueue_1"/>
+      <property name="connectionFactory" ref="qBroker_tcp_c__ss_localhost_c_61616"/>
+      <property name="messageSelector" value="Command=2001"/>
+   </bean>
+
+   <!-- ================================== -->
+   <!-- OutputChannel - for flows out of   -->
+   <!-- this component, both to delegates  -->
+   <!--  (if aggr) and back up to sender   -->
+   <!-- ================================== -->
+   <bean id="outChnl_MeetingFinderQueue_1"
+         class="org.apache.uima.adapter.jms.activemq.JmsOutputChannel"
+         init-method="initialize">
+      <property name="serviceInputEndpoint" value="MeetingFinderQueue"/>
+      <property name="controller" ref="asAggr_ctlr_MeetingFinderQueue_1"/>
+      <property name="controllerInputEndpoint" value="asynAggr_retQ_MeetingFinderQueue_1"/>
+   </bean>
+
+   <!-- map for delegate keys  -->
+   <bean id="delegate_map_MeetingFinderQueue_1" class="java.util.HashMap"
+         singleton="true">
+      <constructor-arg>
+         <map>
+            <entry key="CollectionReader">
+               <ref bean="endpt_CollectionReader_1.1"/>
+            </entry>
+            <entry key="TokenAndSentence">
+               <ref bean="endpt_TokenAndSentence_1.2"/>
+            </entry>
+            <entry key="MeetingDetector">
+               <ref bean="endpt_MeetingDetector_1.3"/>
+            </entry>
+            <entry key="CasConsumer">
+               <ref bean="endpt_CasConsumer_1.4"/>
+            </entry>
+         </map>
+      </constructor-arg>
+   </bean>
+
+ 
+   <!--========================-->
+   <!-- Delegate ErrorHandlers -->
+   <!--========================-->
+   <bean id="err_hndlr_getMetadataEr_1"
+         class="org.apache.uima.aae.error.handler.GetMetaErrorHandler">
+      <constructor-arg>
+         <map>
+            <entry key="CollectionReader">
+               <ref bean="errorConfig__Rtry_0_Action_terminate"/>
+            </entry>
+            <entry key="TokenAndSentence">
+               <ref bean="errorConfig__Rtry_0_Action_terminate"/>
+            </entry>
+            <entry key="MeetingDetector">
+               <ref bean="errorConfig__Rtry_0_Action_terminate"/>
+            </entry>
+            <entry key="CasConsumer">
+               <ref bean="errorConfig__Rtry_0_Action_terminate"/>
+            </entry>
+         </map>
+      </constructor-arg>
+   </bean>
+
+   <bean id="err_hndlr_processCasEr_1"
+         class="org.apache.uima.aae.error.handler.ProcessCasErrorHandler">
+      <constructor-arg>
+         <map>
+            <entry key="CollectionReader">
+               <ref bean="errorConfig__Rtry_0_Continue_false_TCnt_0_TWndw_0_Action_"/>
+            </entry>
+            <entry key="TokenAndSentence">
+               <ref bean="errorConfig__Rtry_0_Continue_false_TCnt_100_TWndw_1000_Action_terminate"/>
+            </entry>
+            <entry key="MeetingDetector">
+               <ref bean="errorConfig__Rtry_0_Continue_false_TCnt_0_TWndw_0_Action_"/>
+            </entry>
+            <entry key="CasConsumer">
+               <ref bean="errorConfig__Rtry_0_Continue_false_TCnt_0_TWndw_0_Action_"/>
+            </entry>
+            <entry key="">
+               <ref bean="errorConfig__TCnt_0_TWndw_0_Action_"/>
+            </entry>
+         </map>
+      </constructor-arg>
+   </bean>
+
+   <bean id="err_hndlr_collectionProcessCompleteEr_1"
+         class="org.apache.uima.aae.error.handler.CpcErrorHandler">
+      <constructor-arg>
+         <map>
+            <entry key="CollectionReader">
+               <ref bean="errorConfig__Action_"/>
+            </entry>
+            <entry key="TokenAndSentence">
+               <ref bean="errorConfig__Action_"/>
+            </entry>
+            <entry key="MeetingDetector">
+               <ref bean="errorConfig__Action_"/>
+            </entry>
+            <entry key="CasConsumer">
+               <ref bean="errorConfig__Action_"/>
+            </entry>
+            <entry key="">
+               <ref bean="errorConfig__Action_"/>
+            </entry>
+         </map>
+      </constructor-arg>
+   </bean>
+
+ 
+   <!--=======================-->
+   <!--  Error Handler Chain  -->
+   <!--=======================-->
+   <bean id="err_hdlr_chn_MeetingFinderQueue_1"
+         class="org.apache.uima.aae.error.ErrorHandlerChain">
+      <constructor-arg>
+         <list>
+            <ref local="err_hndlr_getMetadataEr_1"/>
+            <ref local="err_hndlr_processCasEr_1"/>
+            <ref local="err_hndlr_collectionProcessCompleteEr_1"/>
+         </list>
+      </constructor-arg>
+   </bean>
+   <!--===============================================-->
+   <!-- Primitive or non-Async Aggr: CollectionReader -->
+   <!--===============================================-->
+   <bean id="primitive_ctlr_CollectionReader_1.1"
+         class="org.apache.uima.aae.controller.PrimitiveAnalysisEngineController_impl"
+         init-method="initialize">
+      <constructor-arg index="0" ref="asAggr_ctlr_MeetingFinderQueue_1"/>
+
+     <!--      Key name      -->
+     <constructor-arg index="1" value="CollectionReader"/>
+      <constructor-arg index="2"
+                       value="file:/C:/a/Eclipse/apache/uima-as/src/test/resources/descriptors/meetingFinder/FileSystemCollectionReader.xml"/>
+      <constructor-arg index="3" ref="casManager"/>
+      <constructor-arg index="4" ref="inProcessCache"/>
+
+     <!-- this parameter is ignored  -->
+     <constructor-arg index="5" value="10"/>
+
+     <!-- scaleout number of instances -->
+     <constructor-arg index="6" value="1"/>
+
+     <!-- CAS Multiplier poolSize  -->
+     <constructor-arg index="7" value="2"/>
+
+     <!-- CAS Multiplier initial heap size -->
+     <constructor-arg index="8" value="2000000"/>
+
+     <!-- CAS Multiplier disableJcasCache -->
+     <constructor-arg index="9" value="false"/>
+   </bean>
+   <!--===============================================-->
+   <!-- Primitive or non-Async Aggr: TokenAndSentence -->
+   <!--===============================================-->
+   <bean id="primitive_ctlr_TokenAndSentence_1.2"
+         class="org.apache.uima.aae.controller.PrimitiveAnalysisEngineController_impl"
+         init-method="initialize">
+      <constructor-arg index="0" ref="asAggr_ctlr_MeetingFinderQueue_1"/>
+
+     <!--      Key name      -->
+     <constructor-arg index="1" value="TokenAndSentence"/>
+      <constructor-arg index="2"
+                       value="file:/C:/a/Eclipse/apache/uima-as/src/test/resources/descriptors/meetingFinder/SimpleTokenAndSentenceAnnotator.xml"/>
+      <constructor-arg index="3" ref="casManager"/>
+      <constructor-arg index="4" ref="inProcessCache"/>
+
+     <!-- this parameter is ignored  -->
+     <constructor-arg index="5" value="10"/>
+
+     <!-- scaleout number of instances -->
+     <constructor-arg index="6" value="1"/>
+   </bean>
+   <!--==============================================-->
+   <!-- Primitive or non-Async Aggr: MeetingDetector -->
+   <!--==============================================-->
+   <bean id="primitive_ctlr_MeetingDetector_1.3"
+         class="org.apache.uima.aae.controller.PrimitiveAnalysisEngineController_impl"
+         init-method="initialize">
+      <constructor-arg index="0" ref="asAggr_ctlr_MeetingFinderQueue_1"/>
+
+     <!--      Key name      -->
+     <constructor-arg index="1" value="MeetingDetector"/>
+      <constructor-arg index="2"
+                       value="file:/C:/a/Eclipse/apache/uima-as/src/test/resources/descriptors/meetingFinder/MeetingDetectorTAE.xml"/>
+      <constructor-arg index="3" ref="casManager"/>
+      <constructor-arg index="4" ref="inProcessCache"/>
+
+     <!-- this parameter is ignored  -->
+     <constructor-arg index="5" value="10"/>
+
+     <!-- scaleout number of instances -->
+     <constructor-arg index="6" value="1"/>
+   </bean>
+   <!--==========================================-->
+   <!-- Primitive or non-Async Aggr: CasConsumer -->
+   <!--==========================================-->
+   <bean id="primitive_ctlr_CasConsumer_1.4"
+         class="org.apache.uima.aae.controller.PrimitiveAnalysisEngineController_impl"
+         init-method="initialize">
+      <constructor-arg index="0" ref="asAggr_ctlr_MeetingFinderQueue_1"/>
+
+     <!--      Key name      -->
+     <constructor-arg index="1" value="CasConsumer"/>
+      <constructor-arg index="2"
+                       value="file:/C:/a/Eclipse/apache/uima-as/src/test/resources/descriptors/meetingFinder/XmiWriterCasConsumer.xml"/>
+      <constructor-arg index="3" ref="casManager"/>
+      <constructor-arg index="4" ref="inProcessCache"/>
+
+     <!-- this parameter is ignored  -->
+     <constructor-arg index="5" value="10"/>
+
+     <!-- scaleout number of instances -->
+     <constructor-arg index="6" value="1"/>
+   </bean>
+</beans>

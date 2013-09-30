@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+	license agreements. See the NOTICE file distributed with this work for additional 
+	information regarding copyright ownership. The ASF licenses this file to 
+	you under the Apache License, Version 2.0 (the "License"); you may not use 
+	this file except in compliance with the License. You may obtain a copy of 
+	the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+	by applicable law or agreed to in writing, software distributed under the 
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. See the License for the specific 
+	language governing permissions and limitations under the License. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.apache.uima</groupId>
+		<artifactId>uima-as-parent</artifactId>
+		<version>2.4.2</version>
+		<relativePath>../uima-as-parent/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>uimaj-as-activemq</artifactId>
+	<version>2.4.2</version>
+	<name>Apache UIMA-AS: ${project.artifactId}</name>
+	<description>UIMA-AS ActiveMQ incorporation</description>
+	<url>${uimaWebsiteUrl}</url>
+
+	<!-- Special inheritance note even though the <scm> element that follows 
+		is exactly the same as those in super poms, it cannot be inherited because 
+		there is some special code that computes the connection elements from the 
+		chain of parent poms, if this is omitted. Keeping this a bit factored allows 
+		cutting/pasting the <scm> element, and just changing the following two properties -->
+	<scm>
+		<connection>
+      scm:svn:http://svn.apache.org/repos/asf/uima/uima-as/tags/-rc1/uimaj-as-activemq
+    </connection>
+		<developerConnection>
+      scm:svn:https://svn.apache.org/repos/asf/uima/uima-as/tags/-rc1/uimaj-as-activemq
+    </developerConnection>
+		<url>
+      http://svn.apache.org/viewvc/uima/uima-as/tags/-rc1/uimaj-as-activemq
+    </url>
+	</scm>
+
+	<properties>
+		<uimaScmProject>${project.artifactId}</uimaScmProject>
+		<postNoticeText>${ibmNoticeText}</postNoticeText>
+	</properties>
+
+	<dependencies>
+
+		<!-- Active MQ Stuff -->
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-all</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-jaas</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-spring</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-optional</artifactId>
+			<exclusions> 
+			 <exclusion>  
+                 <groupId>axis</groupId>
+                 <artifactId>axis</artifactId>
+             </exclusion>
+            </exclusions> 
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>kahadb</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uimaj-as-core</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uimaj-as-jms</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- testing dependencies -->
+		<dependency>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.uima</groupId>
+					<artifactId>uimaj-cpe</artifactId>
+				</exclusion>
+			</exclusions>
+
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uimaj-examples</artifactId>
+			<version>${uimajDependencyVersion}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uimaj-test-util</artifactId>
+			<version>${uimajDependencyVersion}</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<!-- This plugin makes the tests run by - giving more memory to them, 
+				and - eliminating the very slow integration test -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>-Xmx300M</argLine>
+					<includes>
+						<include>**/TestUimaASBasic.java</include>
+					</includes>
+				</configuration>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.rat</groupId>
+					<artifactId>apache-rat-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>default-cli</id>
+							<configuration>
+								<excludes>
+									<exclude>release.properties</exclude> <!-- release generated artifact -->
+									<exclude>src/test/resources/data/DoubleByteText.txt</exclude> <!-- test data -->
+								</excludes>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>extended-test</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<version>2.7.2</version>
+						<executions>
+							<execution>
+								<id>integration-test</id>
+								<goals>
+									<goal>integration-test</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>verify</id>
+								<goals>
+									<goal>verify</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<argLine>-Xmx1024M</argLine>
+							<encoding>UTF-8</encoding>
+							<includes>
+								<include>**/TestUimaASExtended.java</include>
+							</includes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

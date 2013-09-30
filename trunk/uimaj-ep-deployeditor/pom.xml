@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.    
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>org.apache.uima</groupId>
+    <artifactId>uima-as-parent</artifactId>
+    <version>2.4.2</version>
+    <relativePath>../uima-as-parent/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>uimaj-ep-deployeditor</artifactId>
+  <packaging>jar</packaging>
+  <version>2.4.2</version>
+  <name>Apache UIMA-AS Eclipse Plugin: ${project.artifactId}</name>
+  <description>Extension to the Component Descriptor Editor supporting editing UIMA-AS deployment descriptors</description>
+  <url>${uimaWebsiteUrl}</url>
+
+  <!-- Special inheritance note
+       even though the <scm> element that follows is exactly the 
+       same as those in super poms, it cannot be inherited because 
+       there is some special code that computes the connection elements
+       from the chain of parent poms, if this is omitted. 
+       
+       Keeping this a bit factored allows cutting/pasting the <scm>
+       element, and just changing the following two properties -->  
+  <scm>
+    <connection>
+      scm:svn:http://svn.apache.org/repos/asf/uima/uima-as/tags/-rc1/uimaj-ep-deployeditor
+    </connection>
+    <developerConnection>
+      scm:svn:https://svn.apache.org/repos/asf/uima/uima-as/tags/-rc1/uimaj-ep-deployeditor
+    </developerConnection>
+    <url>
+      http://svn.apache.org/viewvc/uima/uima-as/tags/-rc1/uimaj-ep-deployeditor
+    </url>
+  </scm>
+  
+  <properties>
+    <uimaScmProject>${project.artifactId}</uimaScmProject>
+    <postNoticeText>${ibmNoticeText}</postNoticeText>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-ep-configurator</artifactId>
+      <version>${uimajDependencyVersion}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-core</artifactId>
+      <version>${uimajDependencyVersion}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-tools</artifactId>
+      <version>${uimajDependencyVersion}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-ep-runtime-deployeditor</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+        <!-- Eclipse dependencies -->
+
+    <!-- Some of these are probably not needed.
+         If you take out too many, the bundle plugin 
+         doesn't include enough of the core.runtime,
+         that is, it generates a sub-import of the form
+         org.eclipse.core.runtime;common=split
+         which breaks things.
+      -->
+
+    <!-- core -->
+    <dependency>
+      <groupId>org.eclipse.core</groupId>
+      <artifactId>org.eclipse.core.runtime</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.core</groupId>
+      <artifactId>org.eclipse.core.runtime.compatibility</artifactId>
+      <version>3.1.100</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.core</groupId>
+      <artifactId>org.eclipse.core.resources</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- ui -->
+        <!-- next one causes NPE with maven 2.0.7.
+      Might be related to http://jira.codehaus.org/browse/MNG-3086
+      Workaround - change version from 3.2.0 to 3.2.1  as of 2/2008 is OK-->
+    <dependency>
+      <groupId>org.eclipse.ui</groupId>
+      <artifactId>org.eclipse.ui</artifactId>
+      <version>3.2.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.ui</groupId>
+      <artifactId>org.eclipse.ui.editors</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.ui</groupId>
+      <artifactId>org.eclipse.ui.forms</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.ui</groupId>
+      <artifactId>org.eclipse.ui.ide</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.ui</groupId>
+      <artifactId>org.eclipse.ui.workbench.texteditor</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- jdt -->
+    <dependency>
+      <groupId>org.eclipse.jdt</groupId>
+      <artifactId>org.eclipse.jdt.core</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- added in Feb 2008 rework -->
+    <dependency>
+      <groupId>org.eclipse.jdt</groupId>
+      <artifactId>org.eclipse.jdt.launching</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.jdt</groupId>
+      <artifactId>org.eclipse.jdt.ui</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- misc -->
+    <dependency>
+      <groupId>org.eclipse.jface</groupId>
+      <artifactId>org.eclipse.jface.text</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.pde</groupId>
+      <artifactId>org.eclipse.pde.ui</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.swt</groupId>
+      <artifactId>org.eclipse.swt.win32.win32.x86</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- These next dependencies are just to lock down the
+         transitive dependencies of the above.
+         This was done because on Sept 7 2010 somebody uploaded
+         corrupted versions of these to maven central. -->
+         
+     <dependency>
+      <groupId>org.eclipse.equinox</groupId>
+      <artifactId>org.eclipse.equinox.registry</artifactId>
+      <version>3.2.1</version>
+      <scope>provided</scope>      
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.core</groupId>
+      <artifactId>org.eclipse.core.jobs</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>      
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.core</groupId>
+      <artifactId>org.eclipse.core.contenttype</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>      
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.equinox</groupId>
+      <artifactId>org.eclipse.equinox.preferences</artifactId>
+      <version>3.2.1</version>
+      <scope>provided</scope>      
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.core</groupId>
+      <artifactId>org.eclipse.core.runtime.compatibility.auth</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>      
+    </dependency>  
+    <dependency>
+      <groupId>org.eclipse.osgi</groupId>
+      <artifactId>org.eclipse.osgi</artifactId>
+      <version>3.2.1</version>
+      <scope>provided</scope>      
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.core</groupId>
+      <artifactId>org.eclipse.core.filesystem</artifactId>
+      <version>1.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.equinox</groupId>
+      <artifactId>org.eclipse.equinox.common</artifactId>
+      <version>3.2.0</version>
+      <scope>provided</scope>      
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.ant</groupId>
+      <artifactId>org.eclipse.ant.core</artifactId>
+      <version>3.1.100</version>
+      <scope>provided</scope>      
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.core</groupId>
+      <artifactId>org.eclipse.core.expressions</artifactId>
+      <version>3.2.1</version>
+      <scope>provided</scope>      
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.core</groupId>
+      <artifactId>org.eclipse.core.variables</artifactId>
+      <version>3.1.100</version>
+      <scope>provided</scope>      
+    </dependency> 
+  </dependencies>
+
+  <build>
+    <finalName>org.apache.uima.deployeditor_${parsedVersion.osgiVersion}</finalName>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <configuration>
+          <manifestLocation>META-INF</manifestLocation>
+          <instructions>
+            <!-- turn off "uses" generation because Eclipse 3.2.x doesn't work with them -->
+            <_nouses>true</_nouses>
+            <Export-Package>
+              org.apache.uima.dde.internal,
+              org.apache.uima.dde.internal.details,
+              org.apache.uima.dde.internal.hover,
+              org.apache.uima.dde.internal.page,
+              org.apache.uima.dde.internal.provider,
+              org.apache.uima.dde.internal.wizards,
+              org.apache.uima.editors.dde.internal,
+              org.apache.uima.tools.images.internal,
+              org.apache.uima.tools.internal.cde.uima.util,
+              org.apache.uima.tools.internal.ui.forms,
+              org.apache.uima.tools.internal.uima.util
+            </Export-Package>
+
+            <!-- handle split packages in Eclipse.
+              We do this by using Require-Bundle, and excluding from the Import-Package those
+                split packages covered by those bundles - this is required by OSGi.
+                               
+               There are 4 packages in org.eclipse.jface.* that are "split" between bundles 
+                  org.eclipse.jface.text and org.eclipse.text.
+                 Packages:
+                  org.eclipse.jface.text
+                  org.eclipse.jface.text.link
+                  org.eclipse.jface.text.source
+                  org.eclipse.jface.text.templates 
+               org.eclipse.ui.texteditor is split between 
+                 org.eclipse.ui.editors and org.eclipse.ui.workbench.texteditor.
+                 Packages: 
+                  org.eclipse.ui.texteditor
+               There are 5 packages in org.eclipse.ui.*  that are split between 
+                 org.eclipse.ui.ide and org.eclipse.ui.workbench.  
+                 The Notes say not to require org.eclipse.ui.workbench, but instead just require
+                    org.eclipse.ui (which imports and reexports org.eclipse.ui.workbench packages).
+                 Packages:
+                  org.eclipse.ui
+                  org.eclipse.ui.actions
+                  org.eclipse.ui.dialogs
+                  org.eclipse.ui.model
+                  org.eclipse.ui.part
+               org.eclipse.core.runtime has combined apis (that were split in later 
+                 point releases of 3.x)
+            -->
+            <!-- NOTE: ANY CONTINUATION LINES for Require-Bundle MUST START IN Col1 else manifest is potentially wrong -->            
+            <Require-Bundle>
+org.eclipse.jface.text,
+org.eclipse.text,
+org.eclipse.ui.editors,
+org.eclipse.ui.workbench.texteditor,
+org.eclipse.ui.ide,
+org.eclipse.ui,
+org.eclipse.ui.workbench,
+org.eclipse.core.runtime
+            </Require-Bundle>
+            <Import-Package>
+              !org.eclipse.jface.text,
+              !org.eclipse.ui.texteditor,
+              !org.eclipse.ui,
+              !org.eclipse.ui.dialogs,
+              !org.eclipse.ui.model,
+              !org.eclipse.ui.part, 
+              !org.eclipse.core.runtime,
+              *,
+              org.apache.uima.taeconfigurator.editors.ui.dialogs,
+              org.apache.uima.taeconfigurator.files
+            </Import-Package>
+
+            <!--Import-Package>*,
+              org.eclipse.core.runtime,
+              org.eclipse.core.runtime.jobs,
+              org.eclipse.core.commands.common,
+              org.eclipse.jface.operation,
+              org.eclipse.jface.window,
+              org.eclipse.jdt.launching,
+              org.apache.uima.taeconfigurator.editors.ui.dialogs
+            </Import-Package-->
+
+            <Bundle-Activator>org.apache.uima.editors.dde.internal.Activator</Bundle-Activator>
+            <Bundle-SymbolicName>org.apache.uima.deployeditor;singleton:=true</Bundle-SymbolicName>
+
+            <Eclipse-LazyStart>true</Eclipse-LazyStart>
+          </instructions>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+</project>

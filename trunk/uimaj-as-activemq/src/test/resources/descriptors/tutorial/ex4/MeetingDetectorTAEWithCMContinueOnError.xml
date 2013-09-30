@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+	<!--
+	 ***************************************************************
+	 * Licensed to the Apache Software Foundation (ASF) under one
+	 * or more contributor license agreements.  See the NOTICE file
+	 * distributed with this work for additional information
+	 * regarding copyright ownership.  The ASF licenses this file
+	 * to you under the Apache License, Version 2.0 (the
+	 * "License"); you may not use this file except in compliance
+	 * with the License.  You may obtain a copy of the License at
+         *
+	 *   http://www.apache.org/licenses/LICENSE-2.0
+	 * 
+	 * Unless required by applicable law or agreed to in writing,
+	 * software distributed under the License is distributed on an
+	 * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+	 * KIND, either express or implied.  See the License for the
+	 * specific language governing permissions and limitations
+	 * under the License.
+	 ***************************************************************
+   -->
+   
+<analysisEngineDescription xmlns="http://uima.apache.org/resourceSpecifier">
+	<frameworkImplementation>org.apache.uima.java</frameworkImplementation>
+	<primitive>false</primitive>
+
+	<delegateAnalysisEngineSpecifiers>
+	
+	
+		<delegateAnalysisEngine key="TestMultiplier">
+			<import location="../../multiplier/SimpleCasGeneratorProducing1000Cases.xml" />
+		</delegateAnalysisEngine>
+
+		<delegateAnalysisEngine key="RoomNumber">
+			<import location="../ex2/RoomNumberAnnotator.xml" />
+		</delegateAnalysisEngine>
+
+		<delegateAnalysisEngine key="DateTime">
+			<import location="../ex3/TutorialDateTime.xml" />
+		</delegateAnalysisEngine>
+
+		<delegateAnalysisEngine key="Meeting">
+			<import location="MeetingAnnotator.xml" />
+		</delegateAnalysisEngine>
+
+		<delegateAnalysisEngine key="NoOp">
+			<import location="../../analysis_engine/NoOpAnnotatorExpecting1000Cases.xml" />
+		</delegateAnalysisEngine>
+
+	</delegateAnalysisEngineSpecifiers>
+	
+    <flowController key="FlowController">
+       <import location="../../flow/AdvancedFixedFlowController.xml" /> 
+    </flowController>
+	
+ 	<analysisEngineMetaData>
+		<name>Meeting Detector TAE</name>
+		<description>Detects Room Numbers, Times, and Dates in text, and annotates the
+			combination of all three as a meeting.</description>
+
+	    <configurationParameters>
+	       <configurationParameter>
+        	  <name>Flow</name>
+        	  <description> Specifies the flow. This is an array of strings where each string is either a single Analysis
+           		Engine key or a comma-separated list of Analysis Engine keys that should be executed in parallel.
+          	  </description>
+        	  <type>String</type>
+              <multiValued>true</multiValued>
+              <mandatory>true</mandatory>
+              <overrides>
+                 <parameter>FlowController/Flow</parameter>
+              </overrides>
+        </configurationParameter>
+	    
+	      <configurationParameter>
+	        <name>AllowContinueOnFailure</name>
+	        <description>Specifies for which AnalysisEngines the Flow should continue when an exception occurs.</description>
+	        <type>String</type>
+	        <multiValued>true</multiValued>
+	        <mandatory>false</mandatory>
+	        <overrides>
+	          <parameter>FlowController/AllowContinueOnFailure</parameter>
+	        </overrides>
+	      </configurationParameter>
+
+	      <configurationParameter>
+	        <name>ExceptionsToIgnore</name>
+	        <description>Specifies which exceptions to ignore.</description>
+	        <type>String</type>
+	        <multiValued>true</multiValued>
+	        <mandatory>false</mandatory>
+	        <overrides>
+	          <parameter>FlowController/ExceptionsToIgnore</parameter>
+	        </overrides>
+	      </configurationParameter>
+
+	    </configurationParameters>
+	    
+	    <configurationParameterSettings>
+          <!-- This specifies the flow -->
+          <nameValuePair>
+           <name>Flow</name>
+            <value>
+               <array>
+                 <string>TestMultiplier</string>
+                 <string>RoomNumber</string>
+                 <string>DateTime</string>
+                 <string>Meeting</string>
+                 <string>NoOp</string>
+               </array>
+            </value>
+          </nameValuePair>
+	    
+	      <nameValuePair>
+	        <name>AllowContinueOnFailure</name>
+	        <value>
+	          <array>
+	            <string>RoomNumber</string>
+	          </array>
+	        </value>
+	      </nameValuePair>
+
+	      <nameValuePair>
+	        <name>ExceptionsToIgnore</name>
+	        <value>
+	          <array>
+	            <string>org.apache.uima.aae.error.MessageTimeoutException</string>
+	            <string>org.apache.uima.aae.error.ForcedMessageTimeoutException</string>
+	          </array>
+	        </value>
+	      </nameValuePair>
+
+	    </configurationParameterSettings>
+
+		
+		<flowConstraints>
+			<fixedFlow>
+				<node>TestMultiplier</node>
+				<node>RoomNumber</node>
+				<node>DateTime</node>
+				<node>Meeting</node>
+				<node>NoOp</node>
+			</fixedFlow>
+		</flowConstraints>
+
+		
+		<capabilities>
+			<capability>
+				<inputs/>
+				<outputs>
+					<type allAnnotatorFeatures="true">
+						org.apache.uima.tutorial.Meeting</type>
+					<type allAnnotatorFeatures="true">
+						org.apache.uima.tutorial.RoomNumber</type>
+					<type allAnnotatorFeatures="true">
+						org.apache.uima.tutorial.DateAnnot</type>
+					<type allAnnotatorFeatures="true">
+						org.apache.uima.tutorial.TimeAnnot</type>
+				</outputs>
+				<languagesSupported>
+					<language>en</language>
+				</languagesSupported>
+			</capability>
+		</capabilities>
+		<operationalProperties>
+			<modifiesCas>true</modifiesCas>
+			<multipleDeploymentAllowed>true</multipleDeploymentAllowed>
+			<outputsNewCASes>false</outputsNewCASes>
+		</operationalProperties>
+	</analysisEngineMetaData>
+</analysisEngineDescription>

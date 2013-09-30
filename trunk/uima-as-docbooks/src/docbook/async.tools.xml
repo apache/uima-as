@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+<!ENTITY % uimaents SYSTEM "../../target/docbook-shared/entities.ent" >
+  %uimaents;
+  ]>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<chapter id="ugr.async.tools">
+  <title>Asynchronous Scaleout Tools</title>
+  <section id="ugr.async.tools.overview">
+    <title>Overview</title>
+    <para>
+    Several tools are available to use with UIMA-AS, including tools to start a JMS Broker,
+    deploy a UIMA-AS service, start up a trivial client that reads documents from a directory 
+    and sends them to a remote service, and query a named service for its meta data.
+    </para>
+    <para>Additionally, there is an extension to the Component Descriptor Editor that
+    gives a form-based editor capability to edit deployment descriptors, along with wizards to 
+    enable creating these kinds of descriptors.</para>
+  </section> 
+  <section id="ugr.async.tools.startBroker">
+    <title>Starting a broker</title>
+    <para>
+    The <code>startBroker</code> script starts an ActiveMQ broker that can then be used to connect UIMA-AS
+    clients to UIMA-AS Services.
+    </para>
+    <para>All arguments are optional; if none are given, the broker is started on the same
+    machine using defaults.  See the script for details on how this can be configured.</para>
+  </section>
+  <section id="ugr.async.tools.deploying">
+    <title>Deploying a UIMA-AS Service</title>
+    <para>
+    The <code>deployAsyncService</code> script deploys one or more UIMA-AS services.  
+    Its arguments are one or more paths to deployment descriptors.
+    </para>
+    <para>
+    The Java source code that does the deploying is in the class 
+    <code>org.apache.uima.adapter.jms.service.UIMA_Service</code>, in the 
+    uimaj-as-activemq project. 
+    </para>
+  </section>
+  <section id="ugr.async.tools.client">
+    <title>Running a UIMA-AS Client</title>
+    <para>The runRemoteAsyncAE script is a sample application  
+    that calls a Remote Asynchronous Analysis Engine on a collection of artifacts, represented by
+    files in a directory.
+    </para>
+    <para>
+      The command takes several arguments:
+      <itemizedlist>
+        <listitem>
+          <para>brokerUrl - the url of the broker to use to connect to the service</para>
+        </listitem>
+        <listitem><para>service name - this is the endpoint name of the service, 
+        and must match what is in the service's deployment descriptor. </para>
+        </listitem>
+      </itemizedlist>
+      <para>The rest of the arguments are optional:</para>
+      <itemizedlist>
+        <listitem><para>-d Specifies a deployment descriptor. 
+        The specified service will be deployed before processing begin, 
+        and the service will be undeployed after processing completes. 
+        Multiple -d entries can be given.</para>
+        </listitem>
+        <listitem><para>-c Specifies a CollectionReader descriptor. 
+        The client will read CASes from the CollectionReader and 
+        send them to the service for processing. If this option is omitted, 
+        one empty CAS will be sent to the service 
+        (useful for services containing a CAS Multiplier acting as a collection reader).</para></listitem>
+        <listitem><para>-p Specifies CAS pool size, which determines the maximum number 
+        of requests that can be outstanding.</para></listitem>
+        <listitem><para>-f Specifies the initial FS heap size in bytes of each CAS in the pool.</para></listitem>
+        <listitem><para>-o Specifies an Output Directory. 
+        All CASes received by the client's CallbackListener will be serialized to XMI 
+        in the specified OutputDir. If omitted, no XMI files will be output.</para></listitem>
+        <listitem><para>-t Specifies a timeout period in seconds. 
+        If a CAS does not return within this time period it is considered an error. 
+        By default there is no timeout, so the client will wait forever.</para></listitem>
+        <listitem><para>-i Causes the client to ignore errors returned from the service. 
+        If not specified, the client terminates on the first error.</para></listitem>
+        <listitem><para>-log Output details on each process request.</para></listitem>
+        <listitem><para>-uimaEeDebug true causes various debugging things to happen, including 
+        <emphasis>not</emphasis> deleting the generated spring file generated by running dd2spring. 
+        This parameter only affects deployments specified using the -d parameter that follow it in the command line sequence.</para></listitem>
+      </itemizedlist>
+    </para>
+    <para>The source code for this is in the class 
+    <code>org.apache.uima.examples.as.RunRemoteAsyncAE.java</code>
+    in the project <code>uimaj-as-activemq</code>.</para>
+  </section>
+    <section id="ugr.async.tools.getMeta">
+    <title>Querying for a service's metadata</title>
+    <para>
+    The <code>getMetaRequest</code> script connects to an Active MQ broker and attempts to 
+    query a particular named service's metadata.  This can be useful to confirm that 
+    a service actually exists and is started, on a particular broker.
+    </para>
+    <para>This takes several arguments:
+      <itemizedlist>
+        <listitem><para>broker Uri - the Uri of the JMS broker used by the UIMA-AS Service</para></listitem>
+        <listitem><para>service name - the name of the UIMA-AS service, same as the "endpoint" name.</para></listitem>
+        <listitem><para>[optional] -verbose  - to output more information</para></listitem>
+      </itemizedlist>
+      There are other arguments which are normally not given; if needed, they are specified as
+      Java -D (defined properties) arguments:
+      <itemizedlist>
+        <listitem><para>-Dactivemq.broker.jmx.port=xxx - override the port
+        being used for JMX (defaults to 1099)</para></listitem>
+        <listitem><para>-Dactivemq.broker.jmx.domain=xxx - use <code>xxx</code>
+        as the JMX domain.  This normally never needs to be done unless multiple brokers are run on the same node 
+        as is sometimes done for unit tests.</para></listitem>
+      </itemizedlist>
+    </para>
+    <para>This command will connect to the specified broker at its JMX port and query
+    to verify that this broker has the named service registered.  It then will 
+    send a <code>getMeta</code> request to the named service and retrieve its metadata.</para>
+    <para>The source code for this is in the class
+    <code>org.apache.uima.examples.as.GetMetaRequest</code> in the project
+    <code>uimaj-as-activemq</code>.</para>
+  </section>
+  
+  
+</chapter>

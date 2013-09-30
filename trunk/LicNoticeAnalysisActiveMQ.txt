@@ -1,0 +1,9 @@
+Excluded from the UIMA AS distribution are the following parts of Apache ActiveMQ 5.6.0 release:
+ 
+- MX4J an implementation of JMX and tools. 
+
+- JmDNS a multicast domain name server
+
+- Glassfish JSP engine
+
+- jboss integration module

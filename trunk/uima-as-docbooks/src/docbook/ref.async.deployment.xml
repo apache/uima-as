@@ -1,0 +1,769 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd" [
+<!ENTITY % uimaents SYSTEM "../../target/docbook-shared/entities.ent" >
+  %uimaents;
+  ]>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<chapter id="ugr.ref.async.deploy">
+  <title>Asynchronous Scaleout Deployment Descriptor</title>
+  <!--
+  <para>This information is temporary and applies to only the
+  initial release; it uses Spring framework descriptors to specify configuration.
+  </para>
+  -->
+  <section id="ugr.ref.async.deploy.descriptor_organization">
+    <title>Descriptor Organization</title>
+    <para> Each deployment descriptor describes one service, associated with a single UIMA descriptor (aggregate
+      or primitive), and describes the deployment of those UIMA components that are co-located, together with
+      specifications of connections to those subcomponents that are remote. </para>
+    
+    <para> The deployment descriptor is used to augment information contained in an analysis engine descriptor. It
+      adds information concerning
+      <itemizedlist spacing="compact">
+        <listitem><para>which components are managed using AS</para></listitem>
+        <listitem><para>queue names for connecting components</para></listitem>
+        <listitem><para>error thresholds and recovery / terminate action specifications</para></listitem>
+        <listitem><para>error handling routine specifications</para></listitem>
+        <!--
+        <listitem><para>monitoring (?)</para></listitem> -->
+        <!-- <listitem><para>checkpointing information (?)</para></listitem> -->
+      </itemizedlist> </para>
+    
+    <para>The application can include both Java and non-Java components; the deployment descriptors are slightly
+      different for non-Java components.</para>
+    
+  </section>
+  
+  <!--======================================================-->
+  <!--         Deployment Descriptor                        -->
+  <!--======================================================-->
+  <section id="ugr.ref.async.deploy.descriptor">
+    <title>Deployment Descriptor</title>
+    
+    <para>Each deployment descriptor describes components associated with one UIMA descriptor. The basic
+      structure of a Deployment Descriptor is as follows:
+      
+      
+      <programlisting>
+<![CDATA[<analysisEngineDeploymentDescription 
+      xmlns="http://uima.apache.org/resourceSpecifier">
+
+  <!-- the standard (optional) header -->
+  <name>[String]</name>
+  <description>[String]</description>
+  <version>[String]</version>
+  <vendor>[String]</vendor>
+
+  <deployment protocol="jms" provider="activemq">
+
+    <casPool                    <!--optional -->
+      numberOfCASes="xxx"       <!--optional -->     
+      initialFsHeapSize="nnn"   <!--optional -->
+      disableJCasCache=         <!--optional --> 
+         "[true/false]"/>
+
+    <service>         <!-- must have only 1 -->
+
+      <!-- 0 or more of the following -->
+      <!-- name required, value optional -->
+      <custom name="..." value="..."/>
+
+      <inputQueue .../>
+
+      <topDescriptor .../> 
+
+      <environmentVariables .../>  <!--optional -->
+
+      <analysisEngine key="key name" async="[true/false]"
+             internalReplyQueueScaleout="nn1" <!-- optional -->
+             inputQueueScaleout="nn2">        <!-- optional -->
+
+        <scaleout numberOfInstances="1"/>       <!-- optional -->
+                                                <!-- optional --> 
+        <casMultiplier 
+             poolSize="5"                       <!-- optional --> 
+             initialFsHeapSize="nnn"            <!-- optional -->
+             processParentLast="[true/false]"   <!-- optional -->
+             disableJCasCache="[true/false]/>   <!-- optional -->
+             
+        <asyncPrimitiveErrorConfiguration .../> <!-- optional -->
+
+        <delegates>    <!-- optional, only for aggregates -->
+                                       <!-- 0 or more -->
+          <analysisEngine key="key name" async="[true/false]"
+               internalReplyQueueScaleout="nn1"
+               inputQueueScaleout="nn2">
+  
+                ...    <!-- optional nested specifications -->
+          </analysisEngine>
+                . . .
+          <remoteAnalysisEngine key="key name"  <!-- 0 or more -->
+               remoteReplyQueueScaleout="nn1">  <!-- optional -->
+  
+            <!-- next is either required or must be omitted -->
+            <casMultiplier 
+                    poolSize="5" 
+                    initialFsHeapSize="nnn"
+                    processParentLast="[true/false]"     <!-- optional -->
+                    disableJCasCache="[true/false]/>     <!-- optional -->
+            <inputQueue ... />
+            <serializer method="xmi"/>
+            <asyncAggregateErrorConfiguration ... />
+          </remoteAnalysisEngine>
+                . . .
+        </delegates>
+      </analysisEngine>
+    </service> 
+  </deployment>
+</analysisEngineDeploymentDescription>]]></programlisting></para>
+    </section>
+  <!--======================================================-->
+  <!--              Cas Pool                                -->
+  <!--======================================================-->
+  <section id="ugr.ref.async.deploy.descriptor.caspool">
+    <title>CAS Pool</title>
+    <para>This element specifies information for managing CAS pools. Having more CASes in the pools enables more AS
+      components to run at the same time. For instance, if your application had four components, but one was slow, you
+      might deploy 10 instances of the slow component. To get all 10 instances working on CASes simultaneously, your
+      CAS pool should be at least 10 CASes. The casPool size should be small enough to avoid paging.</para>
+      
+    <para>This element and all its attributes are optional; if not specified, the values take their defaults (see below).</para>
+    
+    <para>If the <code>numberOfCASes</code> is not specified, it is set to either 1 or, for 
+    top level asynchronous deployments, the <code>scaleout numberOfInstances</code>.</para>
+    
+    <para>The initialFsHeapSize attribute allows setting the size of the initial CAS Feature
+      Structure heap. This number is specified in bytes, and the default is approximately 2 megabytes for Java
+      top-level services, and 40 kilobytes for C++ top level services. The heap grows as needed; this parameter is
+      useful for those cases where the expected heap size is much smaller than the default.
+      If not specified, its default value is <code>2,000,000</code> words.</para>
+    
+    <para>The disableJCasCache attribute on the &lt;casMultiplier> element is optional, and allows disabling of
+      JCas cache. The JCas cache is an internal datastructure that caches any JCas object created by the CAS. 
+      This may result in better performance for applications that make extensive use of the JCas, but also 
+      incurs a steep memory overhead. If you're processing large documents and have memory issues, you should 
+      disable this option. In general, just try running a few experiments to see what setting works better for 
+      your application. The JCas cache is enabled by default.</para>
+      
+    <!--
+    <para>In this design, CASes are managed in two pools; one is for incoming work to be done
+    on this JVM, and the other is to receive results from work sent to other (remote) JVMs,
+    when they finish and return CASes to their containing aggregate or
+    application.</para>
+    
+    <para>CASes can be large, depending on the amount of data in them, and whether or not they
+    are being kept in serialized or internal formats. This limits the number of CASes you
+    want in the pool for this JVM.</para>
+    
+    <para>The initial implementation will take the number of CASes you specify here, and
+    allocate that many to both the pool used for incoming CASes and the pool used to accept
+    returning CASes from delegates or remotes.</para>
+    -->
+    
+  </section>
+  
+  <!--======================================================-->
+  <!--                  Application                         -->
+  <!--======================================================-->
+  <!--
+  <section id="ugr.ref.async.deploy.descriptor.application">
+  <title>Applications</title>
+  <para> This section is required if an application/driver is 
+  using UIMA application API to connect to an AS component; 
+  in this case, it specifies which service to connect to.  This
+  section is omitted if no application is using the application APIs to
+  connect to a service. </para>
+  
+  <programlisting><![CDATA[<application name="a unique name of the application/driver">
+  <inputQueue ... />
+  </application>]]></programlisting>
+  
+  <para>The &lt;inputQueue> element is required and identifies which service to connect this
+  application to.  See <xref linkend="ugr.ref.async.deploy.descriptor.input_queue"/>.
+  </para>
+  </section>
+  -->
+  <!--======================================================-->
+  <!--                  Service                             -->
+  <!--======================================================-->
+  <section id="ugr.ref.async.deploy.descriptor.service">
+    <title>Service</title>
+    <para> This section is required and specifies the deployment information for the service.</para>
+  </section>
+  
+  <!--========================================-->
+  <!--   Service: custom                      -->
+  <!--========================================-->
+  <section id="ugr.ref.async.deploy.descriptor.custom">
+    <title>Customizing the deployment</title>
+    <para>The &lt;custom> element(s) are optional. Each one, if specified, requires a name parameter, and can have
+      an optional value parameter. They are intended to provide additional information needed for particular kinds
+      of deployment. </para>
+    
+    <para>The following lists the things that can be specified here.</para>
+    <itemizedlist>
+      <listitem><para> name="run_top_level_CPP_service_as_separate_process"</para>
+        <para>(no value used)</para>
+        <para>Causes the top level component, which must be a component specified as using
+          &lt;frameworkImplementation>org.apache.uima.cpp&lt;/frameworkImplementation> and which must be
+          specified as async="false" (the default), to be run in a separate process, rather than via using the
+          JNI.</para>
+      </listitem>
+      
+    </itemizedlist>
+  </section>
+  
+  <!--========================================-->
+  <!--   Service: Input Queue                 -->
+  <!--========================================-->
+  <section id="ugr.ref.async.deploy.descriptor.input_queue">
+    <title>Input Queue</title>
+    <para>The inputQueue element is required. It identifies the input queue for the service. </para>
+    
+    
+    <programlisting><![CDATA[<inputQueue brokerURL="tcp://x.y.z:portnumber"
+    endpoint="queue_name"
+    prefetch="1"/>]]></programlisting>
+    
+    <para>
+    The brokerURL attribute is optional. When omitted, a default value of tcp://localhost:61616 will be used. 
+    A different brokerURL can be provided as an override when launching a service. Consult README that provides
+    an example of brokerURL override. The queue broker address includes a protocol specification, which should be set to either "tcp", or
+      "http". <!-- for brokers running on other JVMs, and "vm" for brokers running in the
+      same JVM.<! - having queue connections only to endpoints in this same JVM.- > For the "tcp", "http"
+      protocols, t-->The brokerURL attribute specifies the queue broker URL, typically its network address and
+      port.
+      <!-- For the "vm" protocol, a common broker, called <emphasis
+      role="bold">localBroker</emphasis> is always used, and the brokerURL value
+      is written: <emphasis role="bold">vm://localBroker</emphasis-->.</para>
+    
+    <para>The http protocol is similar to the tcp protocol, but is preferred for wide-area-network connections
+      where there may be firewall issues, as it supports http tunnelling.
+      <!-- The stomp protocol is used for 
+      communication with some Perl, Ruby, PHP or Python-based applications; see
+      <ulink url="http://activemq.apache.org/stomp.html"/> for more information. --></para>
+    <!--para>If the brokerURL is omitted, it defaults to the internal common broker using
+    the "vm" protocol.</para--> 
+    
+    <warning><para>When remote delegates are being used, 
+    <!-- and the replyQueue is remote, --> 
+      the brokerURL value used for this remote delegate is used also for the remote reply Queue, and must be valid
+    for both the client to send requests and the remote service to send replies to. The URL to use for the reply is
+    resolved on the remote system when sending a reply. Using "localhost" will not work, nor will partially specified
+    URLs unless they resolve to the same URL on all nodes where services are running. The recommended best practice is
+    to use fully qualified URL names.</para></warning>
+    
+    <para>The queue name is used to uniquely identify a queue belonging to a particular broker.</para>
+    
+    <para> The <literal>prefetch</literal> attribute controls prefetching of messages for an instance of the
+      service. It can be 0 - which disables prefetching. This is useful in some realtime applications for reducing
+      latency. In this case, when a new request arrives, any available instance will take the request; if prefetching
+      was set above 0, the request might be prefetched by a busy service. The default value if not specified is 0.
+      </para>
+    <note><para>The <literal>prefetch</literal> attribute is only used with the top inputQueue element for the
+    service.</para></note>
+    
+    <!--        <para>The brokerURL attribute can be omitted when it has the value of 
+    vm://localBroker; in this case the service is intended to 
+    only be used by co-located components or applications, and not "published" for 
+    remote clients to connect to and use.</para> -->
+    <!--      
+    <para>In addition, if the top level component is an aggregate having delegates
+    (co-located or not) being managed by AS, then there is one internal, co-located
+    broker managing queues for storing messages (CASes usually) being returned from
+    delegates, and (for co-located delegates) queues for storing messages being sent
+    from the aggregate to its co-located delegates. All co-located delegates (and their
+    co-located delegates, recursively) share this same internal broker. </para>
+    
+    <para> It is possible to specify this same internal broker to also be the manager of the
+    "input" queue for the top level component being deployed.</para>
+    -->
+    <!--
+    
+    < - or - >
+    
+    <inputQueue shareInternalBroker="yes"
+    endpoint="an_arbitrary_but_unique_queue_name_on_this_broker"/>
+    -->
+  </section>
+  
+  <!--========================================-->
+  <!--   Top level descriptor                 -->
+  <!--========================================-->
+  <section id="ugr.ref.async.deploy.descriptor.top_descriptor">
+    <title>Top level Analysis Engine descriptor</title>
+    <titleabbrev>Top Level AE Descriptor</titleabbrev>
+    <para>Each service must indicate some analysis engine to run, using this element. </para>
+    
+    
+    <programlisting><![CDATA[<topDescriptor>
+  <import location="..." /> <!-- or name="..." -->
+</topDescriptor>]]></programlisting>
+    <para> This is the standard UIMA import element. Imports can be by name or by location; see <olink
+        targetdoc="&uima_docs_ref;" targetptr="ugr.ref.xml.component_descriptor.imports"/>. </para>
+  </section>
+  
+  <!--========================================-->
+  <!--   EnvironmentVariables             -->
+  <!--========================================-->
+  <section id="ugr.ref.async.deploy.descriptor.environment_variables">
+    <title>Setting Environment Variables</title>
+    <para>This element is optional, and provides a way to set environment variables.</para>
+    <note><para>This element is only allowed and used for top level Analysis Engines specifying
+    &lt;frameworkImplementation>org.apache.uima.cpp&lt;/frameworkImplementation> and running using the
+    &lt;custom name="run_top_level_CPP_service_as_separate_process">; it is not supported for Java Analysis
+    Engines.</para></note>
+    
+    <para>Components written in C++ can be run as a top level service. These components are launched in a separate
+      process, and by default, all the environment variables of the launching process are passed to the new process.
+      This element allows the environment variables of the new process to be augmented. </para>
+    
+    
+    <programlisting><![CDATA[<environmentVariables>
+<!-- one or more of the following element -->
+<environmentVariable name="xxx">value goes here</environmentVariable>
+</environmentVariables>]]></programlisting>
+    <para> Usually, the value will replace any existing value. As a special exception, for the environment variables
+      used as the PATH (for Windows) or LD_LIBRARY_PATH (for Linux) or DYLD_LIBRARY_PATH (for MacOS), the value will
+      be "prepended" with a path separator character appropriate for the platform, to any existing value. </para>
+  </section>
+  
+  <!--========================================-->
+  <!--   Service: aggregate Analysis Engine   -->
+  <!--========================================-->
+  <section id="ugr.ref.async.deploy.descriptor.ae">
+    <title>Analysis Engine</title>
+    
+    <para>This is used to describe an element which is an analysis engine. It is optional and only needed if the
+      defaults are being overridden. The <literal>async</literal> attribute is only used for aggregates, and
+      specifies that this aggregate will be run asynchronously (with input queues in front of all of its delegates) or
+      not. If not specified, the async property defaults to "false" except in the case where the deployment
+      descriptor includes the &lt;delegates> element, when it defaults to "true". If you specify async="false",
+      then it is an error to specify any &lt;delegates> in the deployment descriptor. </para>
+    
+    <!-- TODO: following para needs work -->
+    <para>The <literal>key</literal> attribute must have as its value the key name used in the containing aggregate
+      descriptor to uniquely identify this delegate. Since the top level aggregate is not contained in another
+      aggregate, this can be omitted for that element. Deployment information is matched to delegates using the key
+      name specified in the aggregate descriptor to identify the delegate. </para>
+    
+    
+    <programlisting><![CDATA[<analysisEngine key="key name" async="true"
+             internalReplyQueueScaleout="nn1"  <!-- optional -->
+             inputQueueScaleout="nn2">         <!-- optional -->
+
+  <scaleout numberOfInstances="1"/>        <!-- optional  -->
+  <!-- casMultiplier is either required, or must be omitted-->
+  <casMultiplier 
+       poolSize="5"                        <!-- optional  -->
+       initialFsHeapSize="nn"              <!-- optional  -->   
+       processParentLast="[true/false]"    <!-- optional  -->          
+       disableJCasCache="[true/false]/>    <!-- optional -->   
+
+    <!-- next two are optional, but only one allowed -->
+  <asyncAggregateErrorConfiguration .../>  <!-- optional  -->
+  <asyncPrimitiveErrorConfiguration .../>  <!-- optional  -->
+
+  <delegates>                              <!-- optional  -->
+    <analysisEngine key="key name" ...>    <!-- 0 or more -->
+            ...       <!-- optional nested specifications -->
+    </analysisEngine>
+            . . . 
+    <remoteAnalysisEngine key="key name"   <!-- 0 or more -->
+             remoteReplyQueueScaleout="nn1"> <!-- optional -->
+
+      <!-- next is either required or must be omitted -->
+      <casMultiplier 
+           poolSize="5"                        <!-- optional  -->
+           initialFsHeapSize="nnn"             <!-- optional  -->
+           processParentLast="[true/false]"    <!-- optional  -->   
+           disableJCasCache="[true/false]/>    <!-- optional -->          
+      
+      <inputQueue ... />
+      <serializer method="[xmi|binary]"/>              <!-- optional -->
+      <asyncAggregateErrorConfiguration .../> <!-- optional -->
+    </remoteAnalysisEngine>
+            . . . 
+  </delegates>                . . .        
+</analysisEngine>]]></programlisting>
+    
+    <para>&lt;analysisEngine> is used to specify deployment details for an analysis engine. It is optional, and if
+      omitted, defaults will be used: The analysis engine will be run synchronously
+      (processing only one CAS at a time), with a scaleout of 1, using the
+      default error configuration.</para>
+    
+    <para>
+      The attributes <code>internalReplyQueueScaleout</code> and <code>inputQueueScaleout</code> only
+      have meaning and are allowed when 
+      async="true" is specified (which in turn can only be set true for aggregates) or is the default (
+      which happens when the aggregate has delegate deployment options specified in the deployment descriptor).
+      These attributes default to 1.  For asynchronous aggregates, they control the number of threads
+      used to do the work of the aggregate outside of running the delegates.  This work can include
+      one or more of the following:
+      <itemizedlist>
+        <listitem>
+          <para>deserializing an input CAS (only on the input Queue),
+          or serializing the resulting CAS back to a remote requester (only if the
+          requester is remote).</para>
+        </listitem>
+        <listitem>
+          <para>running the flow controller</para>
+        </listitem>
+        <listitem>
+          <para>serializing CASes being sent to remote delegates (only useful if one or more
+          of the delegates is remote).  
+          </para>
+        </listitem>
+      </itemizedlist>
+      </para>
+    
+    <para>
+      These attributes provide a way to scale out this work on multi-core machines, if these
+      tasks become a bottleneck.
+    </para>
+
+    <para>Note that if an aggregates flow controller specifies
+            that the first delegate the CAS should flow to is a remote, the work of serializing
+            the CAS to that remote is done using the inputQueue thread, and the scaleout
+            parameter that would apply would be the inputQueueScaleout.  For subsequent delegates,
+            the work is done on the internalReplyQueueScaleout threads.
+    </para>
+    
+    <para> The &lt;scaleout ...> element specifies, for co-located primitive or non-AS aggregates
+      (async="false") at the bottom of an aggregate tree, how many replicated instances are created.
+      
+      
+      <!-- If it is a top-level instance of this element, it is hooked up to the input queue specified for the service. -->
+      </para>
+    
+    <para>The &lt;casMultiplier> element inside an &lt;analysisEngine> element is required if the analysis
+      engine component is a CAS multiplier, and is an error if specified for other components. It specifies for CAS
+      multipliers the size of the pool of CASes used by that CAS multiplier for generating extra CASes.</para>
+    <note><para>The actual CAS pool size can be bigger than the size specified here. The custom CAS multiplier code
+    specifies how many CASes it needs access to at the same time; the actual CAS pool size is the value in the deployment
+    descriptor, plus the value in custom CM code, minus 1.</para></note>
+    
+    <para>The initialFsHeapSize attribute on the &lt;casMultiplier> element is optional, and allows setting the
+      size of the initial CAS Feature Structure heap for CASes in this pool. This number is specified in bytes, and the
+      default is approximately 2 megabytes for Java top-level services, and 40 kilobytes for C++ top level services.
+      The heap grows as needed; this parameter is useful for those cases where the expected heap size is much smaller
+      than the default.</para>
+    
+    <para>The disableJCasCache attribute on the &lt;casMultiplier> element is optional, and allows disabling of
+      JCas cache. The JCas cache is an internal datastructure that caches any JCas object created by the CAS. 
+      This may result in better performance for applications that make extensive use of the JCas, but also 
+      incurs a steep memory overhead. If you're processing large documents and have memory issues, you should 
+      disable this option. In general, just try running a few experiments to see what setting works better for 
+      your application. The JCas cache is enabled by default.</para>
+    
+    
+    <para>The processParentLast attribute on the &lt;casMultiplier> element is optional, and specifies processing
+      order of an input CAS relative to its children. If true, a flow of an input CAS will be suspended after it is 
+      returned from a Cas Multiplier delegate until all its child CASes have finished processing. If false, an input
+      CAS can be processed in parallel with its children.</para>
+      
+    <para>The &lt;remoteAnalysisEngine> elements are used to specify that the delegate is not co-located, and how
+      to connect to it.  The <code>remoteReplyQueueScaleout</code> is optional; if not specified it defaults to 1.
+      This scaleout is the number of threads that will be used to do the work of the containing aggregate 
+      when replies are returned from this remote delegate.  This work is described above.  
+      It may be useful to set this to > 1 if, for instance, 
+      there are many CASes coming back from a remote delegate (perhaps the remote is a CAS Multiplier), and each one 
+      has to be deserialized.
+      </para>
+    
+    <para>The &lt;serializer> element describes what method of serialization to use. This element is optional and it
+    may be set to either <code>binary</code> or <code>xmi</code>. If omitted, <code>xmi</code> serialization 
+    will be used by default. <code>Xmi</code> serialization 
+    can be quite verbose and produce large output for CASes containing many annotations; on the plus side, 
+    it supports serialization between components where the type systems may not be exactly identical (for instance,
+    they could be different subsets of larger, common type systems).  <code>Binary</code> serialization produces
+    a smaller output size and is more efficient; on the minus side, it requires that the type systems 
+    for both components have exactly the same type and feature codes - which in practice means that the 
+    type systems have to be identical.   Also, the binary serialization format is new with 2.3.0 release, and is not always
+    available.  For example, C++ services do not (currently) support this format. 
+    </para>
+    <para>
+      The &lt;inputQueue> element specifies the remote's input queue. The casMultiplier element inside a remoteAnalysisEngine element is only specified if the
+      remote component is a CAS Multiplier, and it specifies the size of a pool of CASes kept to receive the new CASes
+      from the remote component, and the initial size of those CASes. Its poolSize must be equal to or larger than the
+      casMultiplier poolSize specified for that remote component.</para>
+
+    <note><para>As of release 2.3.1, the previous restrictions limiting remote CAS Multiplier to 
+    just one have been lifted; you can have any number, and they can be scaled out as well.</para></note>
+     
+    
+    
+    <note><para>The brokerURL value used for this remote delegate must be valid for
+    both the client to send requests and the remote service to send replies.</para></note>
+    
+    <para>Services may be running on nodes with firewalls, where the only port open is the one for http. In this case,
+      you can use the http protocol.</para>
+    
+    <para>The &lt;asyncPrimitiveErrorConfiguration> element is only allowed within a top-level analysis engine
+      specification (that is, one that is not a delegate of another, containing analysis engine).</para>
+  </section>
+  
+  <!--========================================-->
+  <!--          Error Configuration           -->
+  <!--========================================-->
+  <section id="ugr.ref.async.deploy.descriptor.errorconfig">
+    <title>Error Configuration descriptors</title>
+    <para>Error Configuration descriptors can be included directly in the deployment descriptors, or they may use
+      the &lt;import&gt; mechanism to import another file having the specification. </para>
+    <para>For AS Aggregates, the configuration applicable to delegates goes in
+      &lt;asyncAggregateErrorConfiguration&gt; elements for the delegate. </para>
+    <para>For AS Primitives, there is one &lt;asyncPrimitiveErrorConfiguration&gt; element that configures
+      threshold-based termination. The other kinds of error configuration are not applicable for AS Primitives.
+      </para>
+    <para>See <olink targetdoc="uima_async_scaleout" targetptr="ugr.async.eh"></olink> for a complete
+      overview of error handling. </para>
+    <!--Retry actions can be specified for AS Aggregates, receiving errors or timeouts
+    from particular delegates.   Each Error Configuration relating to the component it is included in.descriptor has two parts.  is associated with some delegate, and the
+    handlers, thresholds, and actions for a particular Error Configuration are 
+    plugged into the containing Aggregate, and associated with that particular delegate
+    using the containing aggregate's key-name for that delegate.</para>
+    
+    <! - <para>In addition, you can specify a top-level Error Configuration element.
+    This may only specify the terminate action.
+    This provides a mechanism for a badly behaved service instance to remove itself from operation,
+    if it determines it is failing too often.
+    </para> - >
+    
+    <para>Each Error Configuration can provide timeout limits for its delegate; these are used
+    when the containing aggregate sends CASes (work units) to be processed by the delegate.
+    Timeouts inherit downward; a higher-level specification will be used for all contained 
+    delegates and their delegates, recursively, for the parts managed by this Descriptor.
+    Lower level Error Configurations can be used whenever needed; they override the upper
+    level specifications.</para>
+    
+    <para> Errors can be categorized into several classes:
+    <itemizedlist spacing="compact">
+    <listitem><para>timeouts</para></listitem>
+    <listitem><para>failures due to a particular CAS (work unit)</para>
+    </listitem>
+    <listitem><para>failures due to faulty components</para></listitem>
+    </itemizedlist></para>
+    
+    <para> Actions taken upon detection of these errors can include:</para>
+    <itemizedlist spacing="compact">
+    <listitem><para><emphasis role="bold">Terminate</emphasis> - This action only
+    available for the top-level error handler of a service.</para></listitem>
+    <listitem><para><emphasis role="bold">Retry</emphasis> - attempt to process
+    the CAS again. This can be useful if the service processing a CAS abnormally
+    terminates and there are other service instances available.
+    </para>
+    </listitem>
+    <! -
+    <listitem><para><emphasis role="bold">Propagate</emphasis> - let some
+    containing, higher-up component handle the error and decide on an
+    action</para></listitem> - >
+    <listitem><para><emphasis role="bold">DropCAS</emphasis> - skip further
+    processing of this CAS by the current containing aggregate</para></listitem>
+    <listitem><para><emphasis role="bold">Continue</emphasis> - skip further
+    processing of this CAS by this delegate. Ask the flow controller if
+    any further processing of the CAS is possible in the current aggregate,
+    and if not, then DropCAS.
+    </para></listitem>
+    <listitem><para><emphasis role="bold">Disable</emphasis> - tell the flow
+    controller to bypass this component for subsequent CASes in this
+    "run"</para></listitem>
+    </itemizedlist>
+    
+    <para> When continuing to work with a CAS, it is possible in some cases to revert the CAS
+    state to the state it had at the beginning of the processing component that reported
+    the error. To do this requires that the framework take a snapshot of the CAS state
+    before delivering it to the component. Since this can be a relatively expensive
+    operation, it is configurable, using the &lt;casManagement> element. </para>
+    
+    <para>In some cases multiple specifications are possible. For instance, the
+    <emphasis role="bold">disable</emphasis> action could be combined with
+    other actions. Multiple &lt;errorHandler> elements can be specified. These will
+    be assembled into a chain of handlers, in the order specified. Each handler can
+    either handle an error or pass it along the chain.</para>
+    -->
+    <!-- action can be one of: 
+    Terminate - stop the application
+    DropCas   - tell the flow controller to
+    skip further processing of this
+    CAS
+    Disable   - tell the flow controller to
+    skip further calls to this 
+    component
+    Continue  - attempt to continue. This action
+    may modified by the flow controller
+    involved
+    Retry     - retry the CAS
+    
+    <errorHandling>
+    <timeout event="metadataRequest"
+    milliseconds="10000"
+    threshold="1"
+    action="DropCas"/>
+    <timeout event="processRequest"
+    milliseconds="30000"
+    threshold="1"
+    action="DropCas"/>
+    <timeout event="collectionProcessCompleteRequest"
+    milliseconds="30000"
+    threshold="1"
+    action="DropCas"/>    
+    <exception event="User_specified_exceptionClassName"
+    threshold="1"
+    action="DropCas"/>
+    . . . <! - can have multiple exception specs, 
+    with different events" - >
+    <! - custom error handler - > 
+    <userErrorHandler implementationName="x.y.z.User_Errorhandler">
+    <userErrorHandlerSpec event="User_specified_errorKind"
+    threshold="1"
+    action="DropCas"/>
+    . . . <! - can have multiple specifications,- >
+    with different events" - >
+    </errorHandler>
+    . . . <! - can have multiple error handlers - >
+    </errorHandling>              
+    -->
+    
+    <para>The Error Configuration descriptor for AS Aggregates is as follows; note that all the elements are
+      optional:
+      
+      
+      <programlisting><![CDATA[<asyncAggregateErrorConfiguration 
+      xmlns="http://uima.apache.org/resourceSpecifier">
+
+  <!-- the standard (optional) header -->
+  <name>[String]</name>
+  <description>[String]</description>
+  <version>[String]</version>
+  <vendor>[String]</vendor>
+
+  <import ... />  <!-- optional -->   
+
+  <getMetadataErrors
+          maxRetries="n" 
+          timeout="xxx_milliseconds"
+          errorAction="disable|terminate"/> 
+
+  <processCasErrors
+          maxRetries="n" 
+          timeout="xxx_milliseconds"
+          continueOnRetryFailure="true|false"
+          thresholdCount="xxx"
+          thresholdWindow="yyy"
+          thresholdAction="disable|terminate"/>
+
+  <collectionProcessCompleteErrors
+          timeout="xxx_milliseconds"
+          additionalErrorAction="disable|terminate"/>
+
+</asyncAggregateErrorConfiguration>]]></programlisting></para>
+    
+    <para>For an AS Primitive, the &lt;asyncPrimitiveErrorConfiguration> element appears at the top level, and
+      has this form:
+      
+      <programlisting><![CDATA[<asyncPrimitiveErrorConfiguration 
+      xmlns="http://uima.apache.org/resourceSpecifier">
+
+  <!-- the standard (optional) header -->
+  <name>[String]</name>
+  <description>[String]</description>
+  <version>[String]</version>
+  <vendor>[String]</vendor>
+
+  <import ... />  <!-- optional -->   
+
+  <processCasErrors
+          thresholdCount="xxx"
+          thresholdWindow="yyy"
+          thresholdAction="terminate"/>
+
+  <collectionProcessCompleteErrors
+          additionalErrorAction="terminate"/>
+          
+</asyncPrimitiveErrorConfiguration>]]></programlisting>
+      </para>
+    
+    <!-- 
+    <para>There are several categories of timeouts, designated by 
+    different events that the framework times. Default values are shown;
+    a value of 0 means the event is not timed.      
+    </para>
+    
+    <note><para>&lt;userErrorHandler>s are not available in the 3/31/07 drop.</para></note>
+    -->
+    
+    <para> The maxRetries attribute specifies the maximum number of retries to do. If this is set to 0 (the default), no
+      retries are done. </para>
+    
+    <para>The continueOnRetryFailure attribute, if set to 'true' causes the framework to ask the aggregate's flow
+      controller if the processing for the CAS can continue. If this attribute is 'false' or if the flow controller
+      indicates it cannot continue, further processing on the CAS is stopped and an error is returned from the
+      aggregate. Warning: there are some conditions in the current implementation where this is not yet being done;
+      this is a known issue. </para>
+    <warning><para> If maxRetries > 0 or the continueOnRetryFailure attribute is 'true', the CAS will be saved
+    before sending it to remote delegates, to enable these actions. For co-located delegates, the CAS is
+    <emphasis>not</emphasis> copied and a process failure may cause it to become corrupt. Even though this may
+    be true, the continue option is supported. It is the Flow Controller's responsibility to determine what to do 
+    with a CAS that failed during processing.
+    </para>
+    </warning>
+    
+    <para> The timeout attribute specifies the timeout values used when sending commands to the delegates. The units
+      are milliseconds and a value of 0 has the special meaning of no timeout.</para>
+    
+    <para> The thresholdCount and thresholdWindow attributes specify the threshold at which the thresholdAction
+      is taken. If xxx errors occur within a window of size yyy, the framework takes the specified action of either
+      disabling this delegate, or terminating the containing AS Aggregate (or if not an AS Aggregate, terminating
+      the AS Primitive). A thresholdCount of 0 (the default) has the special meaning of no threshold, i.e. errors
+      ignored, and a thresholdWindow of 0 (the default) means no window, i.e. all errors counted. </para>
+    
+    <para> An action of 'disable' applies to the specified delegate, removing it from the flow so the containing
+      aggregate will no longer send it commands. The 'terminate' action applies to the entire service containing
+      this component, disconnecting it from its input queue and shutting it down. Note that when disabling, the
+      framework asks the flow controller to remove the delegate from the flow, but if the flow controller cannot
+      reasonably operate without this component it can convert the action to 'terminate' by throwing an
+      AnalysisEngineProcessException.FLOW_CANNOT_CONTINUE_AFTER_REMOVE exception. </para>
+    
+    <para> Note that the only action for an AS Primitive on getMetadata failure is to terminate, and this is always the
+      case, so it is not listed as an configuration option. This is also the default action for an AS Aggregate
+      getMetadata failure. </para>
+    
+  </section>
+  
+  <section id="ugr.ref.async.deploy.descriptor.errorconfig.defaults">
+    <title>Error Configuration defaults</title>
+    <para> If the &lt;errorConfiguration> element is omitted, or if some sub elements of this are omitted, the
+      following defaults are used:
+      <itemizedlist>
+        <listitem><para>The maxRetries parameter is set to 0. </para></listitem>
+        <listitem><para>Timeout defaults are set to 0, meaning no timeout, except for the getMetadata command for
+          remote delegates; here the default is 60000 (1 minute)</para></listitem>
+        <listitem><para>The continueOnRetryFailure action is set to "false".</para></listitem>
+        <listitem><para>The thresholdCount value is set to 0, meaning no threshold, errors are ignored.</para>
+          </listitem>
+        <listitem><para>The thresholdWindow value is set to 0, meaning no window, all errors are counted.</para>
+          </listitem>
+        <listitem><para>No disable or terminate action will be done (i.e. errors ignored), except for the
+          getMetadata command where the default is to terminate.</para></listitem>
+      </itemizedlist> </para>
+  </section>
+  
+</chapter>

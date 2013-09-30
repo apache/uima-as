@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+	<!--
+	 ***************************************************************
+	 * Licensed to the Apache Software Foundation (ASF) under one
+	 * or more contributor license agreements.  See the NOTICE file
+	 * distributed with this work for additional information
+	 * regarding copyright ownership.  The ASF licenses this file
+	 * to you under the Apache License, Version 2.0 (the
+	 * "License"); you may not use this file except in compliance
+	 * with the License.  You may obtain a copy of the License at
+         *
+	 *   http://www.apache.org/licenses/LICENSE-2.0
+	 * 
+	 * Unless required by applicable law or agreed to in writing,
+	 * software distributed under the License is distributed on an
+	 * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+	 * KIND, either express or implied.  See the License for the
+	 * specific language governing permissions and limitations
+	 * under the License.
+	 ***************************************************************
+   -->
+   
+<analysisEngineDescription xmlns="http://uima.apache.org/resourceSpecifier">
+  <frameworkImplementation>org.apache.uima.java</frameworkImplementation>
+  <primitive>false</primitive>
+  <delegateAnalysisEngineSpecifiers>
+    
+    <delegateAnalysisEngine key="1TestAggregateCM">
+      <import location="1TestAggregateCM.xml"/>
+    </delegateAnalysisEngine>
+
+    <delegateAnalysisEngine key="2TestAggregateCM">
+      <import location="2TestAggregateCM.xml"/>
+    </delegateAnalysisEngine>
+  
+  </delegateAnalysisEngineSpecifiers>
+  <analysisEngineMetaData>
+    <name>Test Aggregate TAE</name>
+    <description>Detects Nothing</description>
+    <configurationParameters searchStrategy="language_fallback">
+      <configurationParameter>
+        <name>ActionAfterCasMultiplier</name>
+        <description>The action to be taken after a CAS has been input to a CAS Multiplier and the CAS Multiplier has finished processing it.
+		 Valid values are:
+			continue - the CAS continues on to the next element in the flow
+			stop - the CAS will no longer continue in the flow, and will be returned from the aggregate if possible.
+			drop - the CAS will no longer continue in the flow, and will be dropped (not returned from the aggregate) if possible.	 
+			dropIfNewCasProduced (the default) - if the CAS multiplier produced a new CAS as a result of processing this CAS, then this
+				CAS will be dropped.  If not, then this CAS will continue.</description>
+        <type>String</type>
+        <multiValued>false</multiValued>
+        <mandatory>false</mandatory>
+        <overrides>
+          <parameter>FixedFlowController/ActionAfterCasMultiplier</parameter>
+        </overrides>
+      </configurationParameter>
+    </configurationParameters>
+    
+    <configurationParameterSettings>
+      <nameValuePair>
+        <name>ActionAfterCasMultiplier</name>
+        <value>
+          <string>continue</string>
+        </value>
+      </nameValuePair>
+    </configurationParameterSettings>
+    <flowConstraints>
+      <fixedFlow>
+        <node>1TestAggregateCM</node>
+        <node>2TestAggregateCM</node>
+      </fixedFlow>
+    </flowConstraints>
+    <capabilities>
+      <capability>
+        <inputs/>
+        <outputs>
+        </outputs>
+        <languagesSupported>
+          <language>en</language>
+        </languagesSupported>
+      </capability>
+    </capabilities>
+	<operationalProperties>
+		<modifiesCas>true</modifiesCas>
+		<multipleDeploymentAllowed>true</multipleDeploymentAllowed>
+		<outputsNewCASes>false</outputsNewCASes>
+	</operationalProperties>
+  </analysisEngineMetaData>
+</analysisEngineDescription>

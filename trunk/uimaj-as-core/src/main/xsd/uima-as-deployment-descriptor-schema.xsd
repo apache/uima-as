@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--   schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://uima.apache.org/resourceSpecifier" xmlns="http://www.w3.org/2001/XMLSchema"> -->
+<schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://uima.apache.org/resourceSpecifier" xmlns="http://www.w3.org/2001/XMLSchema"> 
+  
+  <!-- import namespace="http://www.w3.org/2001/XMLSchema" />  -->
+  <element name="analysisEngineDeploymentDescription" type="res:analysisEngineDeploymentDescriptionType" xmlns:res="http://uima.apache.org/resourceSpecifier"> 
+    <annotation>
+      <documentation>***************************************************************
+   * Licensed to the Apache Software Foundation (ASF) under one
+   * or more contributor license agreements.  See the NOTICE file
+   * distributed with this work for additional information
+   * regarding copyright ownership.  The ASF licenses this file
+   * to you under the Apache License, Version 2.0 (the
+   * "License"); you may not use this file except in compliance
+   * with the License.  You may obtain a copy of the License at
+         *
+   *   http://www.apache.org/licenses/LICENSE-2.0
+   * 
+   * Unless required by applicable law or agreed to in writing,
+   * software distributed under the License is distributed on an
+   * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   * KIND, either express or implied.  See the License for the
+   * specific language governing permissions and limitations
+   * under the License.
+   ***************************************************************</documentation>
+    </annotation>
+  </element>
+  <complexType name="casPoolType">
+    <simpleContent>
+      <extension base="string">
+        <attribute type="int" name="numberOfCASes"/>
+        <attribute type="int" name="initialFsHeapSize"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+  <complexType name="inputQueueType">
+    <simpleContent>
+      <extension base="string">
+        <attribute type="string" name="endpoint" use="optional"/>
+        <attribute type="string" name="brokerURL" use="optional"/>
+        <attribute type="int" name="prefetch" use="optional"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+  <complexType name="importType">
+    <simpleContent>
+      <extension base="string">
+        <attribute type="string" name="location"/>
+        <attribute type="string" name="name"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+
+  <complexType name="topDescriptorType">
+    <sequence>
+	  <choice>
+      <element type="res:importType" name="import" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+	  </choice>
+    </sequence>
+  </complexType>
+  <complexType name="environmentVariableType">
+    <simpleContent>
+      <extension base="string">
+        <attribute type="string" name="name" use="optional"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+  <complexType name="environmentVariablesType">
+    <sequence>
+      <element type="res:environmentVariableType" name="environmentVariable" maxOccurs="unbounded" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier">
+        <annotation>
+          <documentation>one or more of the following element</documentation>
+        </annotation>
+      </element>
+    </sequence>
+  </complexType>
+  
+  <complexType name="scaleoutType">
+    <simpleContent>
+      <extension base="string">
+        <attribute type="int" name="numberOfInstances"  default="1"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+  
+  <complexType name="casMultiplierType">
+    <simpleContent>
+      <extension base="string">
+        <attribute type="int" name="poolSize" use="optional" default="1"/>
+        <attribute type="string" name="initialFsHeapSize" use="optional"/>
+        <attribute type="string" name="processParentLast" use="optional" default="false"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+  
+  <complexType name="getMetadataErrorsType">
+    <simpleContent>
+      <extension base="string">
+        <attribute type="int" name="maxRetries" use="optional" default="0"/>
+        <attribute type="int" name="timeout" use="optional" default="0"/>
+        <attribute type="string" name="errorAction" use="optional" />
+      </extension>
+    </simpleContent>
+  </complexType>
+  <complexType name="processCasErrorsType">
+    <simpleContent>
+      <extension base="string">
+        <attribute type="int" name="maxRetries" use="optional" default="0"/>
+        <attribute type="int" name="timeout" use="optional" default="0"/>
+        <attribute type="int" name="thresholdCount" use="optional" default="0"/>
+        <attribute type="string" name="continueOnRetryFailure" use="optional" />
+        <attribute type="int" name="thresholdWindow" use="optional"/>
+        <attribute type="string" name="thresholdAction" use="optional"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+  <complexType name="collectionProcessCompleteErrorsType">
+    <simpleContent>
+      <extension base="string">
+        <attribute type="int" name="timeout" use="optional" default="0"/>
+        <attribute type="string" name="additionalErrorAction" use="optional"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+  <complexType name="asyncAggregateErrorConfigurationType">
+    <sequence>
+      <element type="res:getMetadataErrorsType" name="getMetadataErrors" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:processCasErrorsType" name="processCasErrors" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:collectionProcessCompleteErrorsType" name="collectionProcessCompleteErrors" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+    </sequence>
+  </complexType>
+  
+  <complexType name="topLevelAnalysisEngineType">
+  	<complexContent>
+  		<extension base="res:analysisEngineType" xmlns:res="http://uima.apache.org/resourceSpecifier">
+			<sequence>
+			      <element type="res:asyncPrimitiveErrorConfigurationType" name="asyncPrimitiveErrorConfiguration" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+			</sequence>  		
+  		</extension>  
+  	</complexContent>
+    <!-- sequence>
+      <element type="res:scaleoutType" name="scaleout" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:delegatesType" name="delegates" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:casMultiplierType" name="casMultiplier" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      
+      <element type="res:asyncPrimitiveErrorConfigurationType" name="asyncPrimitiveErrorConfiguration" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+    </sequence>
+    <attribute type="string" name="key" use="optional"/>
+    <attribute type="string" name="async" use="optional"/>
+    <attribute type="string" name="internalReplyQueueScaleout" use="optional"/>
+    <attribute type="string" name="inputQueueScaleout" use="optional"/ -->
+  </complexType>
+
+  <complexType name="delegatesType">
+    <sequence>
+      <!-- element type="res:delegateColocatedAnalysisEngineType" name="analysisEngine" maxOccurs="unbounded" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/> -->
+      <element type="res:delegateAnalysisEngineType" name="analysisEngine" maxOccurs="unbounded" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/> 
+      <!-- element type="res:delegateRemoteAnalysisEngineType" name="remoteAnalysisEngine" maxOccurs="unbounded" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/> -->
+      <element type="res:remoteAnalysisEngineType" name="remoteAnalysisEngine" maxOccurs="unbounded" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+    </sequence>
+  </complexType>
+
+  <complexType name="analysisEngineType" >
+    <sequence>
+      <element type="res:scaleoutType" name="scaleout" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:delegatesType" name="delegates" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:casMultiplierType" name="casMultiplier" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+    </sequence>
+    <attribute type="string" name="key" use="optional"/>
+    <attribute type="string" name="async" use="optional"/>
+    <attribute type="string" name="internalReplyQueueScaleout" use="optional"/>
+    <attribute type="string" name="inputQueueScaleout" use="optional"/>
+  </complexType>
+
+  <!-- complexType name="delegateColocatedAnalysisEngineType"> -->
+  <complexType name="delegateAnalysisEngineType">
+  	<complexContent>
+  		<extension base="res:analysisEngineType" xmlns:res="http://uima.apache.org/resourceSpecifier">
+			<sequence>
+			      <element type="res:asyncAggregateErrorConfigurationType" name="asyncAggregateErrorConfiguration" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+			</sequence>  		
+  		</extension>  
+  	</complexContent>
+    <!-- sequence>
+      <element type="res:scaleoutType" name="scaleout" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:delegatesType" name="delegates" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:casMultiplierType" name="casMultiplier" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:asyncAggregateErrorConfigurationType" name="asyncAggregateErrorConfiguration" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+    </sequence> -->
+    <!--  attribute type="string" name="key" use="optional"/>
+    <attribute type="string" name="async" use="optional"/>
+    <attribute type="string" name="internalReplyQueueScaleout" use="optional"/>
+    <attribute type="string" name="inputQueueScaleout" use="optional"/> -->
+  </complexType>
+  
+  
+
+  <!-- complexType name="delegateRemoteAnalysisEngineType"> -->
+  <complexType name="remoteAnalysisEngineType">
+    <sequence>
+      <element type="res:inputQueueType" name="inputQueue" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:serializerType" name="serializer" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      
+      <element type="res:casMultiplierType" name="casMultiplier" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:asyncAggregateErrorConfigurationType" name="asyncAggregateErrorConfiguration" minOccurs="0" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+    </sequence>
+    <attribute type="string" name="async" use="optional"/>
+    <attribute type="string" name="key" use="optional"/>
+    <attribute type="int" name="remoteReplyQueueScaleout" use="optional"/>
+  </complexType>
+
+  <complexType name="serializerType">
+    <simpleContent>
+      <extension base="string">
+        <attribute name="method" use="optional" default="xmi">
+             <simpleType>
+                 <restriction base="string">
+			<enumeration value="xmi" />
+			<enumeration value="binary" />
+                 </restriction>
+             </simpleType>
+        </attribute>     
+      </extension>
+    </simpleContent>
+  </complexType>
+  
+  <complexType name="asyncPrimitiveErrorConfigurationType">
+    <sequence>
+      <element type="res:processCasErrorsType" name="processCasErrors" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:collectionProcessCompleteErrorsType" name="collectionProcessCompleteErrors" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+    </sequence>
+  </complexType>
+  <complexType name="serviceType">
+    <sequence>
+      <element type="res:inputQueueType" name="inputQueue" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:topDescriptorType" minOccurs="1" maxOccurs="1" name="topDescriptor" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:environmentVariablesType" name="environmentVariables" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:topLevelAnalysisEngineType" minOccurs="1" maxOccurs="1" name="analysisEngine" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+    </sequence>
+  </complexType>
+  <complexType name="deploymentType">
+    <sequence>
+      <element type="res:casPoolType" name="casPool" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+      <element type="res:serviceType" name="service" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+    </sequence>
+    <attribute type="string" name="protocol"/>
+    <attribute type="string" name="provider"/>
+  </complexType>
+  <complexType name="analysisEngineDeploymentDescriptionType">
+    <sequence>
+      <element type="string" name="name"/>
+      <element type="string" name="description"/>
+      <element type="string" name="version"/>
+      <element type="string" name="vendor"/>
+      <element type="res:deploymentType" name="deployment" xmlns:res="http://uima.apache.org/resourceSpecifier"/>
+    </sequence>
+  </complexType>
+</schema>

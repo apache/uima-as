@@ -1,0 +1,86 @@
+Apache UIMA-AS
+Copyright 2008, 2009 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+Portions of UIMA-AS were originally developed by
+International Business Machines Corporation and are
+licensed to the Apache Software Foundation under the
+"Software Grant License Agreement", informally known as the 
+"IBM UIMA-EE License Agreement".
+Copyright (c) 2007, 2008 IBM Corporation
+
+------------------- www.ibatis.com Notice -------
+This product also includes software developed by
+Clinton Begin (http://www.ibatis.com).
+
+----------- ActiveMQ + Spring Notice --------------
+This product includes software, Apache ActiveMQ, developed
+at the Apache Software Foundation (http://www.apache.org/).
+
+The end-user documentation included with a redistribution, if any,
+must include the following acknowledgement:
+
+ "This product includes software developed by the Spring Framework
+  Project (http://www.springframework.org)."
+
+Alternately, this acknowledgement may appear in the software itself,
+if and wherever such third-party acknowledgements normally appear.
+
+The names "Spring" and "Spring Framework" must not be used to
+endorse or promote products derived from this software without
+prior written permission. For written permission, please contact
+rod.johnson@interface21.com or juergen.hoeller@interface21.com.
+
+This product includes software, XBean::Spring, developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+This product includes software, QDox, developed by
+ThoughtWorks, Inc (http://www.thoughtworks.com/).
+
+This product includes software, Spring Framework: Core, developed by
+Spring Framework (http://www.springframework.org/).
+
+This product includes software, Spring Framework: Web, developed by
+Spring Framework (http://www.springframework.org/).
+
+---------- Saxon Notice --------
+This product includes software known as 
+"The Saxon XSLT and XQuery Processor from Saxonica Limited", whose
+home page URL is http://www.saxonica.com/ 
+
+Saxon includes the org.apache.xerces.util.XMLChar module from the Apache 
+Xerces product, renamed as net.sf.saxon.om.XMLChar but otherwise unchanged. 
+See the copyright statements included in the source code of that module for
+conditions of use.
+
+Saxon includes code for performing Unicode normalization that is derived 
+from the sample code published for this purpose by the Unicode consortium. 
+For the terms of use of this code, see http://www.unicode.org/terms_of_use.html, 
+which should be regarded as forming part of these conditions of use, and part 
+of the Saxon documentation. 
+
+------- Jetty Notice ----------
+This product includes software, Jetty, developed at
+The Apache Software Foundation (http://www.apache.org/) and Mort Bay Consulting Pty Ltd.
+
+The javax.servlet package used by Jetty is copyright
+Sun Microsystems, Inc and Apache Software Foundation. It is
+distributed under the Common Development and Distribution License.
+You can obtain a copy of the license at
+https://glassfish.dev.java.net/public/CDDLv1.0.html.
+
+Some portions of the code are Copyright:
+  2006 Tim Vernum
+  1999 Jason Gilbert
+  
+The UnixCrypt.java code ~Implements the one way cryptography used by
+Unix systems for simple password protection.  Copyright 1996 Aki Yoshida,
+modified April 2001  by Iris Van den Broeke, Daniel Deville.
+
+-------SVG Icons Notice ------------------------
+
+This product contains icons developed by the SVG Icons project 
+(http://sourceforge.net/projects/svgicons), licensed under the 
+BSD license (see LICENSE file).

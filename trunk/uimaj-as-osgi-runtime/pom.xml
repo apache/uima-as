@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.    
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>org.apache.uima</groupId>
+    <artifactId>uima-as-parent</artifactId>
+    <version>2.4.2</version>
+    <relativePath>../uima-as-parent/pom.xml</relativePath>
+  </parent>
+  
+  <artifactId>uimaj-as-osgi-runtime</artifactId>
+  <packaging>jar</packaging>
+  <version>2.4.2</version>
+  <name>Apache UIMA AS: ${project.artifactId}</name>
+  <description>Apache UIMA AS runtime code packaged for osgi use</description>
+  <url>${uimaWebsiteUrl}</url>
+
+  <!-- Special inheritance note
+       even though the <scm> element that follows is exactly the 
+       same as those in super poms, it cannot be inherited because 
+       there is some special code that incorrectly computes the 
+       connection elements from the chain of parent poms, if this is omitted. 
+       
+       Keeping this a bit factored allows cutting/pasting the <scm>
+       element, and just changing the following two properties -->  
+  <scm>
+    <connection>
+      scm:svn:http://svn.apache.org/repos/asf/uima/uima-as/tags/-rc1/uimaj-as-osgi-runtime
+    </connection>
+    <developerConnection>
+      scm:svn:https://svn.apache.org/repos/asf/uima/uima-as/tags/-rc1/uimaj-as-osgi-runtime
+    </developerConnection>
+    <url>
+      http://svn.apache.org/viewvc/uima/uima-as/tags/-rc1/uimaj-as-osgi-runtime
+    </url>
+  </scm>
+  
+  <properties>
+    <uimaScmProject>${project.artifactId}</uimaScmProject>
+  </properties>
+  
+  <!-- These dependencies should just be all the jars that
+       need to be included in the library plugin -->
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-core</artifactId>
+      <version>${uimajDependencyVersion}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-cpe</artifactId>
+      <version>${uimajDependencyVersion}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-tools</artifactId>
+      <version>${uimajDependencyVersion}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-examples</artifactId>
+      <version>${uimajDependencyVersion}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-adapter-vinci</artifactId>
+      <version>${uimajDependencyVersion}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>jVinci</artifactId>
+      <version>${uimajDependencyVersion}</version>
+      <scope>provided</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-as-core</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-as-jms</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+  
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-as-activemq</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>org.apache.uima.runtime.uimaas_${parsedVersion.osgiVersion}</finalName>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>uima-bundle</id>
+            <configuration>
+              <instructions>
+                <!-- turn off "uses" generation because Eclipse 3.2.x doesn't work with them -->
+                <_nouses>true</_nouses>
+                <!-- export contents because we don't want the actual
+                     java code included (although we could... as an
+                     alternative to the jars - but might have a
+                     versioning / control issue -->
+                <_exportcontents>org.apache.uima.aae,org.apache.uima.aae.client,
+            org.apache.uima.aae.controller,
+            org.apache.uima.aae.delegate,
+            org.apache.uima.aae.deploymentDescriptor,
+            org.apache.uima.aae.error,
+            org.apache.uima.aae.error.handler,
+            org.apache.uima.aae.handler,
+            org.apache.uima.aae.handler.input,
+            org.apache.uima.aae.jms_adapter,
+            org.apache.uima.aae.jmx,org.apache.uima.aae.jmx.monitor,
+            org.apache.uima.aae.message,
+            org.apache.uima.aae.monitor,
+            org.apache.uima.aae.monitor.statistics,
+            org.apache.uima.aae.spi.transport,
+            org.apache.uima.aae.spi.transport.vm,
+            org.apache.uima.adapter.jms,
+            org.apache.uima.adapter.jms.activemq,
+            org.apache.uima.adapter.jms.client,
+            org.apache.uima.adapter.jms.message,
+            org.apache.uima.adapter.jms.service,
+            org.apache.uima.examples.as,
+            org.apache.uima.jms.error.handler
+                </_exportcontents>
+    
+                <Import-Package>org.apache.log4j;resolution:=optional,*
+                </Import-Package>
+                <Embed-Dependency>*;scope=compile</Embed-Dependency>
+                <Bundle-SymbolicName>org.apache.uima.runtime.fragments.uimaas;singleton:=true</Bundle-SymbolicName>
+                <Fragment-Host>org.apache.uima.runtime</Fragment-Host>
+                <Eclipse-RegisterBuddy>org.apache.uima.runtime</Eclipse-RegisterBuddy>
+              </instructions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copyDependentJars</id>
+            <goals><goal>copy-dependencies</goal></goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+              <excludeTransitive>true</excludeTransitive>
+              <includeArtifactIds>uimaj-as-core,uimaj-as-jms,uimaj-as-activemq</includeArtifactIds>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>      
+    </plugins>
+  </build>
+</project>

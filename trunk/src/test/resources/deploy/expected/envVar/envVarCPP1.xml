@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--==================================================================================-->
+ <!-- Generated from                                                                          -->
+ <!-- file:/C:/a/Eclipse/apache/uima-as/src/test/resources/deploy/envVar/envVarCPP1.xml -->
+ <!-- 2 April, 2009, 11:37:05 A.M.                                                            -->
+ <!--==================================================================================-->
+ <!DOCTYPE beans
+  PUBLIC "-//Spring//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+          
+          
+        
+<!--======================================================-->
+   <!-- Primitive or non-Async Aggr: MeetingDetectorTaeQueue -->
+   <!--======================================================-->
+   <bean id="placeholderSubstitution"
+         class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+      <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/>
+   </bean>
+   <bean id="primitive_ctlr_MeetingDetectorTaeQueue_1"
+         class="org.apache.uima.aae.controller.UimacppServiceController">
+
+     <!-- path to top level descriptor -->
+     <constructor-arg index="0"
+                       value="file:/C:/a/Eclipse/apache/uima-as/src/test/resources/deploy/envVar/cppDescr.xml"/>
+
+     <!--    input q name    -->
+     <constructor-arg index="1" value="MeetingDetectorTaeQueue"/>
+
+     <!-- input q BrokerURL  -->
+     <constructor-arg index="2" value="tcp://tcp.main.input.queue.localhost:61616"/>
+
+     <!-- scaleout number of instances -->
+     <constructor-arg index="3" value="1"/>
+
+     <!--   prefetch limit   -->
+     <constructor-arg index="4" value="0"/>
+
+     <!--    Env Vars map    -->
+     <constructor-arg index="5">
+         <map>
+            <entry key="e1">
+               <value>some text</value>
+            </entry>
+            <entry key="e2">
+               <value/>
+            </entry>
+         </map>
+      </constructor-arg>
+
+     <!-- Process CAS Error Threshold  -->
+     <constructor-arg index="6" value="0"/>
+
+     <!-- PprocessCas Error Window -->
+     <constructor-arg index="7" value="0"/>
+
+     <!-- Terminate on CPC Error -->
+     <constructor-arg index="8" value="false"/>
+      <constructor-arg index="9" value="40000"/>
+   </bean>
+</beans>

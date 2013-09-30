@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+	license agreements. See the NOTICE file distributed with this work for additional 
+	information regarding copyright ownership. The ASF licenses this file to 
+	you under the Apache License, Version 2.0 (the "License"); you may not use 
+	this file except in compliance with the License. You may obtain a copy of 
+	the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+	by applicable law or agreed to in writing, software distributed under the 
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. See the License for the specific 
+	language governing permissions and limitations under the License. -->
+
+<!-- This pom serves as the the UIMA-AS common parent pom, and may include 
+	overrides to the project-wide parent-pom. Over time, things in this pom which 
+	apply to other projects within UIMA are migrated to the project-wide parent 
+	pom. -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.apache.uima</groupId>
+		<artifactId>parent-pom</artifactId>
+		<version>7</version>
+		<relativePath />
+	</parent>
+
+	<groupId>org.apache.uima</groupId>
+	<artifactId>uima-as-parent</artifactId>
+	<packaging>pom</packaging>
+	<version>2.4.2</version>
+	<name>Apache UIMA-AS: ${project.artifactId}</name>
+	<description>The common parent pom for uima-as</description>
+	<url>${uimaWebsiteUrl}</url>
+
+	<scm>
+		<connection>
+      scm:svn:http://svn.apache.org/repos/asf/uima/uima-as/tags/-rc1/uima-as-parent
+    </connection>
+		<developerConnection>
+      scm:svn:https://svn.apache.org/repos/asf/uima/uima-as/tags/-rc1/uima-as-parent
+    </developerConnection>
+		<url>
+      http://svn.apache.org/viewvc/uima/uima-as/tags/-rc1/uima-as-parent
+    </url>
+	</scm>
+
+
+	<!-- The repositories section is duplicated from the parent pom one, and 
+		adds the Apache Snapshot Nexus repository where UIMA snapshots are deployed. 
+		This is needed if for instance, a project depends on some new SNAPSHOT level 
+		of a build tool, where the users hasn't checked out the build tooling. This 
+		allows maven to find the snapshots when looking for the parent of this pom -->
+	<repositories>
+		<repository>
+			<id>eclipsePlugins</id>
+			<name>Eclipse components</name>
+			<layout>default</layout>
+			<url>http://repo1.maven.org/eclipse</url>
+
+			<releases>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</releases>
+
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<!-- modify central repository access: Turn on checksum checking -->
+		<repository>
+			<id>central</id>
+			<name>Maven Repository Switchboard</name>
+			<layout>default</layout>
+			<url>http://repo1.maven.org/maven2</url>
+
+			<releases>
+				<enabled>true</enabled>
+				<checksumPolicy>fail</checksumPolicy>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+
+		</repository>
+
+		<!-- this is needed if this pom refers to a snapshot of the parent -->
+		<repository>
+			<id>apache.snapshots</id>
+			<name>Apache Snapshot Repository</name>
+			<url>http://repository.apache.org/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
+
+
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>apache.snapshots.plugins</id>
+			<name>Apache Snapshot Repository - Maven plugins</name>
+			<url>http://repository.apache.org/snapshots</url>
+			<layout>default</layout>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<checksumPolicy>fail</checksumPolicy>
+				<updatePolicy>never</updatePolicy>
+			</snapshots>
+		</pluginRepository>
+
+	</pluginRepositories>
+	<properties>
+		<uimaScmRoot>uima-as</uimaScmRoot>
+		<uimaScmProject>${project.artifactId}</uimaScmProject>
+		<!-- level of uimaj sdk this release depends on -->
+		<uimajDependencyVersion>2.4.2</uimajDependencyVersion>
+		<!-- level of ActiveMQ this release depends on -->
+		<org.apache.activemq.version>5.6.0</org.apache.activemq.version>
+		<!-- level of SpringFramework this release depends on -->
+		<org.springframework.version>3.0.6.RELEASE</org.springframework.version>
+
+		<org.apache.geronimo.jms.specs.version>1.1.1</org.apache.geronimo.jms.specs.version>
+
+		<org.apache.geronimo.j2ee.specs.version>1.0.1</org.apache.geronimo.j2ee.specs.version>
+
+		<org.apache.geronimo.servlet.specs.version>1.2</org.apache.geronimo.servlet.specs.version>
+
+		<jetty.version>7.6.7.v20120910</jetty.version>
+
+		<commons-pool.version>1.5.4</commons-pool.version>
+
+		<xstream.version>1.4.3</xstream.version>
+
+		<xmlbeans.version>2.4.0</xmlbeans.version>
+		
+		<slf4j.version>1.6.4</slf4j.version>
+		
+		<http.client.version>3.1</http.client.version>
+	</properties>
+	<!-- dependencyManagement is a declaration section naming each artifact 
+		the uima-as components depends on. -->
+	<dependencyManagement>
+		<dependencies>
+
+			<dependency>
+				<groupId>org.apache.uima</groupId>
+				<artifactId>uimaj-core</artifactId>
+				<version>${uimajDependencyVersion}</version>
+				<scope>compile</scope>
+			</dependency>
+
+
+			<!-- Active MQ Stuff -->
+			<dependency>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>activemq-all</artifactId>
+				<version>${org.apache.activemq.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>activemq-jaas</artifactId>
+				<version>${org.apache.activemq.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>activemq-web</artifactId>
+				<version>${org.apache.activemq.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>activemq-spring</artifactId>
+				<version>${org.apache.activemq.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>activemq-optional</artifactId>
+				<version>${org.apache.activemq.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>kahadb</artifactId>
+				<version>${org.apache.activemq.version}</version>
+			</dependency>
+
+            <dependency>
+               <groupId>${project.groupId}</groupId>
+               <artifactId>activemq-http</artifactId>
+               <version>${org.apache.activemq.version}</version>
+            </dependency>
+			
+			<!-- Spring Framework Dependencies -->
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-core</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-asm</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-aop</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-beans</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-expression</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-tx</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-jms</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+
+
+
+			<dependency>
+				<groupId>org.apache.geronimo.specs</groupId>
+				<artifactId>geronimo-jms_1.1_spec</artifactId>
+				<version>${org.apache.geronimo.jms.specs.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.geronimo.specs</groupId>
+				<artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
+				<version>${org.apache.geronimo.j2ee.specs.version}</version>
+			</dependency>
+
+
+			<dependency>
+				<groupId>org.apache.geronimo.specs</groupId>
+				<artifactId>geronimo-servlet_2.5_spec</artifactId>
+				<version>${org.apache.geronimo.servlet.specs.version}</version>
+			</dependency>
+
+			<!-- Jetty -->
+			<dependency>
+				<groupId>org.eclipse.jetty.aggregate</groupId>
+				<artifactId>jetty-all-server</artifactId>
+				<version>${jetty.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>commons-pool</groupId>
+				<artifactId>commons-pool</artifactId>
+				<version>${commons-pool.version}</version>
+				<scope>compile</scope>
+			</dependency>
+
+            <dependency>
+               <groupId>org.apache.httpcomponents</groupId>
+               <artifactId>httpclient</artifactId>
+               <version>4.2.5</version>
+            </dependency>
+            
+            
+            
+			<dependency>
+				<groupId>com.thoughtworks.xstream</groupId>
+				<artifactId>xstream</artifactId>
+				<version>${xstream.version}</version>
+				<type>jar</type>
+				<scope>compile</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.xmlbeans</groupId>
+				<artifactId>xmlbeans</artifactId>
+				<version>${xmlbeans.version}</version>
+				<scope>compile</scope>
+			</dependency>
+
+            <dependency>
+               <groupId>org.slf4j</groupId>
+               <artifactId>slf4j-log4j12</artifactId>
+               <version>${slf4j.version}</version>
+            </dependency>
+        
+       
+    
+           <dependency>
+           <groupId>org.slf4j</groupId>
+           <artifactId>jcl-over-slf4j</artifactId>
+           <version>${slf4j.version}</version>
+           </dependency>
+
+          <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+          <version>${slf4j.version}</version>
+          </dependency>
+			
+			
+		  <dependency>
+              <groupId>commons-httpclient</groupId>
+              <artifactId>commons-httpclient</artifactId>
+              <version>${http.client.version}</version>
+          </dependency> 
+		  	
+		</dependencies>
+
+
+	</dependencyManagement>
+
+	<!-- All UIMA-AS projects depend on SpringFramework -->
+	<dependencies>
+
+ <dependency>
+               <groupId>org.slf4j</groupId>
+               <artifactId>slf4j-log4j12</artifactId>
+            </dependency>
+        
+       
+    
+           <dependency>
+           <groupId>org.slf4j</groupId>
+           <artifactId>jcl-over-slf4j</artifactId>
+           </dependency>
+
+          <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+          </dependency>
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uimaj-core</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+
+		<!-- Spring Framework Dependencies -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-asm</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-expression</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jms</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-jms_1.1_spec</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-servlet_2.5_spec</artifactId>
+		</dependency>
+
+		<!-- Jetty -->
+		<dependency>
+			<groupId>org.eclipse.jetty.aggregate</groupId>
+			<artifactId>jetty-all-server</artifactId>
+		</dependency>
+
+        <dependency>
+               <groupId>org.apache.httpcomponents</groupId>
+               <artifactId>httpclient</artifactId>
+        </dependency>
+            
+       
+	</dependencies>
+	<build>
+	</build>
+
+</project>

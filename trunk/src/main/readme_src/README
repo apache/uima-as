@@ -1,0 +1,66 @@
+For instructions on building Apache UIMA-AS please refer to:
+http://incubator.apache.org/uima/svn.html#building.with.maven
+
+Those instructions will enable building the uima core, which is
+needed by this project.
+
+To build this project, first build the UIMA core, and then
+do the following steps:
+
+1) either check out of SVN the following projects into the same 
+"workspace" directory that you checked out the base UIMA:
+   - uima-as-docbooks
+   - uimaj-as
+   - uimaj-as-activemq
+   - uimaj-as-camel
+   - uimaj-as-core
+   - uimaj-as-jms
+   - uimaj-as-osgi-runtime
+   - uimaj-ep-deployeditor
+   - uimaj-ep-runtime-deployeditor
+   
+   or, unzip the source distribution into the same workspace.
+   
+2) cd to the uimaj-as project, and do mvn install
+3) To work with eclipse, following step 2), do mvn eclipse:eclipse
+4) To build the distribution, follow the setup instructions on
+http://incubator.apache.org/uima/svn.html#build.distribution and 
+then cd to uima-as and do mvn assembly:assembly
+
+-------------------------
+
+If you have installed both the Apache UIMA-AS binary distribution and the
+Apache UIMA-AS source distribution, you can run the addSourceJars.bat 
+(or .sh) script to add the source code to the jar files in the 
+UIMA_HOME/lib directory.  This may make it more convenient to access
+the UIMA Source Code (and JavaDocs) from an IDE such as Eclipse.
+
+See the NOTICE file for licensing information.
+
+Crypto Notice
+-------------
+
+   This distribution includes cryptographic software.  The country in 
+   which you currently reside may have restrictions on the import, 
+   possession, use, and/or re-export to another country, of 
+   encryption software.  BEFORE using any encryption software, please 
+   check your country's laws, regulations and policies concerning the
+   import, possession, or use, and re-export of encryption software, to 
+   see if this is permitted.  See <http://www.wassenaar.org/> for more
+   information.
+
+   The U.S. Government Department of Commerce, Bureau of Industry and
+   Security (BIS), has classified this software as Export Commodity 
+   Control Number (ECCN) 5D002.C.1, which includes information security
+   software using or performing cryptographic functions with asymmetric
+   algorithms.  The form and manner of this Apache Software Foundation
+   distribution makes it eligible for export under the License Exception
+   ENC Technology Software Unrestricted (TSU) exception (see the BIS 
+   Export Administration Regulations, Section 740.13) for both object 
+   code and source code.
+
+   The following provides more details on the included cryptographic
+   software:
+   
+   This distribution includes portions of Apache ActiveMQ, which, in
+   turn, is classified as being controlled under ECCN 5D002.

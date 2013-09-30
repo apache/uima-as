@@ -1,0 +1,1168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+       "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"[
+<!ENTITY % uimaents SYSTEM "../../target/docbook-shared/entities.ent">  
+]>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<chapter id="ugr.async.mt">
+  <title>Monitoring, Tuning and Debugging</title>
+  <para>
+    UIMA AS deployments can involve many separate parts running on many
+    different machines.  Monitoring facilities and tools built into UIMA AS help
+    in collecting information on the performance of these parts.  You can
+    use the monitoring information to identify deployment issues, such as
+    bottlenecks, and address these with various approaches that alter the
+    deployment choices; this is what we mean by "tuning the deployment".
+  </para>
+  
+  <para>
+    Monitoring happens in several parts:
+    <itemizedlist>
+      <listitem><para>Each node running a JVM hosting UIMA AS services or clients provides
+        JMX information tracking many items of interest.</para></listitem>
+      <listitem>
+        <para>UIMA AS services include some of these measurements in the information
+          passed back to its client, along with the returned CAS.  This allows
+          clients to collect and aggregate measurements over a cluster of remotely-deployed
+          components.</para>
+      </listitem>
+      <!--listitem>
+        <para>UIMA AS includes a Monitor component that can optionally be turned on to
+          sample the JMX data at
+          a specified interval, and write the results into the UIMA log (or to the
+          console if no log is configured) in several formats, one of which is 
+          convenient for reading, and the other is convenient for importing into
+          a spreadsheet program.</para>
+      </listitem-->
+    </itemizedlist>
+  </para>
+  
+  <para>Tuning a UIMA AS application is done using several approaches:
+    <itemizedlist>
+      <listitem><para>changing the topology of the scaleout - for instance, allocating more
+        nodes to some parts, less to others</para></listitem>
+      <listitem>
+        <para>adjusting deployment parameters, such as the number of CASes in a CasPool, or
+          the number of threads assigned to do various tasks</para>
+      </listitem>
+    </itemizedlist>
+  </para>
+  
+  <para>
+    In addition, tuning can involve changing the actual analytic algorithms
+    to tune them - but that is beyond the scope of this chapter.
+  </para>
+
+  <para>
+	UIMA AS scale out configurations add multithreaded and out-of-order execution complexities to 
+	core UIMA applications. Debugging a UIMA AS application is aided by UIMA's modular architecture 
+	and an approach that exercises the code gradually from simpler to more complex configurations.
+	Two useful built-in debug features are:
+    <itemizedlist>
+      <listitem>
+        <para>Java errors at any component level are propagated back to the component originating 
+      	the request, with a full call chain of UIMA AS components, within
+		colocated aggregate components and across remote services which are 
+		shared by multiple clients.</para>
+      </listitem>
+      <listitem>
+        <para>CASes can be saved before sending to any local or remote 
+        	delegate and later used to reproduce problems in a simple unit testing environment.</para>
+      </listitem>
+    </itemizedlist>
+  </para>
+    
+  
+  <section id="ugr.async.mt.monitoring">
+    <title>Monitoring</title>
+      
+    <section id="ugr.async.mt.jmx">
+      <title>JMX</title>
+      <para>JMX (Java Management Extensions) is a standard Java mechanism that
+        is used to monitor and control Java applications.  A standard Java tool
+        provided with most Javas, called
+        <code>jconsole</code>, is a GUI based application that can connect to
+        a JVM and display the information JMX is providing, and also control
+        the application in application-defined specific ways.</para>
+        
+      <para>JMX information is provided by a hierarchy of JMX Beans.  More
+        background and information on JMX and the jconsole tool is available on the web.</para>
+        
+      <!--para>This section will first describe the basic JMX Beans, and then
+        later describe a UIMA AS monitor tool that can sample the values of these beans at
+        a specified interval and write the results to the UIMA log in various
+        formats.</para-->
+    </section>
+    <section id="ugr.async.mt.jmx_monitoring">
+      <title>JMX Information from UIMA AS</title>
+      
+      <para>JMX information is provided by every UIMA AS service or client as it runs.
+        Each item provided is either an instantaneous measurement (
+        e.g. the number of items in a queue) or an accumulating measurement (
+        e.g. the number of CASes processed).  Accumulating measures
+        can be reset to 0 using standard JMX mechanisms.</para>
+        
+      <para>
+        JMX information is provided on a JVM basis; a JVM can be hosting 0 or more
+        UIMA AS Services and/or clients.  A UIMA AS Service is defined as a component
+        that connects to a queue
+        and accepts CASes to process.  A UIMA AS Client, in contrast, sends CASes to
+        be processed; it can be a top level client, or
+        a UIMA AS Service having one or more AS Aggregate delegates, to which it is
+        sending CASes to be processed.
+      </para>
+      
+      <para>
+        UIMA AS Services send
+        some of their measurements back to the UIMA AS Clients that sent them CASes; those
+        clients incorporate these measurements into aggregate statistics that they provide.
+        This allows accumulating information among components deployed over many nodes 
+        interconnected on a network.
+      </para>
+     
+      <para>
+        Some JMX measurement items are constant, and document various settings, descriptors, 
+        names, etc., in use by the (one or more) UIMA AS services and/or 
+        clients running on this JVM.</para>
+
+      <para>Some time measurements are associated with running some process.  These,
+        where possible, are cpu times, as measured by the thread or threads running the process, using the
+        ThreadMXBean class.  On some Javas, thread-based cpu time may not be supported, however.  In that
+        case, wall-clock time is used instead.</para>
+        
+      <para>  
+        If the process is multi-threaded, and the cpu has multiple cores, 
+        you can get time measurements which exceed the wall clock interval, due to the process consuming
+        cpu time on multiple threads at once.</para>
+        
+      <para>Timing information not associated with running code, such as idle time, is measured as wall-clock time.</para>      
+            
+      <para>The following sections describe the JMX Beans implemented by UIMA AS.  The
+        Notes in the tables include the following flags:
+        
+        <itemizedlist>
+          <listitem>
+            <para><emphasis role="bold">inst/acc/const</emphasis> - instantaneous, accumulating, or constant measurement</para>
+          </listitem>
+          <listitem>
+            <para><emphasis role="bold">sent</emphasis> - sent up to the invoking client with returning CAS</para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      
+      <section id="ugr.async.mt.jmx_monitoring.service">
+        <title>UIMA AS Services JMX measures</title>
+        <para>The next 4 tables detail the JMX measures provided by UIMA AS services.</para>
+        <section id="ugr.async.mt.jmx_monitoring.constant.service">
+          <title>Service information</title>
+          <informaltable frame="all">
+            <tgroup cols="4" colsep="1" rowsep="1">
+              <colspec colname="c1" colwidth="2*"/>
+              <colspec colname="c2" colwidth="5*"/>
+              <colspec colname="c3" colwidth="1*"/>
+              <colspec colname="c4" colwidth="1.5*"/>
+              <thead>
+                <row>
+                  <entry align="center">Name</entry>
+                  <entry align="center">Description</entry>
+                  <entry align="center">Units</entry>
+                  <entry align="center">Notes</entry>
+                </row>
+              </thead>
+              
+              <tbody>
+                <row>
+                  <entry>state</entry>
+                  <entry>The state of the service (Running, Initializing, Disabled, Stopping, Failed)</entry>
+                  <entry>string</entry>
+                  <entry>inst</entry>
+                </row>
+                <row>
+                  <entry>input queueName</entry>
+                  <entry>The name of the input queue</entry>
+                  <entry>string</entry>
+                  <entry>const</entry>
+                </row>
+                <row>
+                  <entry>reply queueName</entry>
+                  <entry>The internally generated name of the reply queue</entry>
+                  <entry>string</entry>
+                  <entry>const (but could change due to reconnection recovery)</entry>
+                </row>
+                <row>
+                  <entry>broker URL</entry>
+                  <entry>The URL of the JMS queue broker</entry>
+                  <entry>string</entry>
+                  <entry>const</entry>
+                </row>
+                <row>
+                  <entry>deployment descriptor</entry>
+                  <entry>The path to the deployment descriptor for this service</entry>
+                  <entry>string</entry>
+                  <entry>const</entry>
+                </row>
+                <row>
+                  <entry>is CAS Multiplier</entry>
+                  <entry>is this Service a CAS Multiplier</entry>
+                  <entry>boolean</entry>
+                  <entry>const</entry>
+                </row>
+                <row>
+                  <entry>is top level</entry>
+                  <entry>is this Service a top level service, meaning that it connects to
+                    an input queue on a queue broker</entry>
+                  <entry>boolean</entry>
+                  <entry>const</entry>
+                </row>
+                <row>
+                  <entry>service key</entry>
+                  <entry>The key name used in the associated Analysis Engine aggregate that specifies
+                    this as a delegate</entry>
+                  <entry>string</entry>
+                  <entry>const</entry>
+                </row>
+                <row>
+                  <entry>is Aggregate</entry>
+                  <entry>is this service an AS Aggregate (i.e., has delegates and
+                    is marked async="true")</entry>
+                  <entry>boolean</entry>
+                  <entry>const</entry>
+                </row>
+                <row>
+                  <entry>analysisEngine instance count</entry>
+                  <entry>The number of replications of the AS Primitive</entry>
+                  <entry>count</entry>
+                  <entry>const</entry>
+                </row>          
+              </tbody>
+            </tgroup>
+          </informaltable>                  
+        </section>
+        
+        
+      <section id="ugr.async.mt.jmx_monitoring.service.performance">
+        <title>Service Performance Measurements</title>
+        <informaltable frame="all">
+          <tgroup cols="4" colsep="1" rowsep="1">
+            <colspec colname="c1" colwidth="2*"/>
+            <colspec colname="c2" colwidth="5*"/>
+            <colspec colname="c3" colwidth="1*"/>
+            <colspec colname="c4" colwidth="1*"/>
+            <thead>
+              <row>
+                <entry align="center">Name</entry>
+                <entry align="center">Description</entry>
+                <entry align="center">Units</entry>
+                <entry align="center">Notes</entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry>number of CASes processed</entry>
+                <entry>The number of CASes processed by a component</entry>
+                <entry>count - CASes</entry>
+                <entry>acc</entry>
+              </row>
+             <row>
+                <entry>cas deserialization time</entry>
+                <entry>The thread time spent deserializing CASes (receiving, either from client, or replies from delegates)</entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+              </row>
+             <row>
+                <entry>cas serialization time</entry>
+                <entry>The thread time spent serializing CASes (sending, either to delegates or back to client)</entry>
+                <entry>count - CASes</entry>
+                <entry>acc</entry>
+             </row>
+             <row>
+                <entry>analysis time</entry>
+                <entry>The thread time spent in AS Primitive analytics</entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+             </row>
+             <row>
+                <entry>idle time</entry>
+                <entry>The wall clock time a service has been idle.  Measure starts
+                  after a reply is sent until the next request is receives, and excludes
+                  serialization/deserialization times.</entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+             </row>
+             <row>
+                <entry>cas pool wait time</entry>
+                <entry>The time spent waiting for a CAS to become available in the CAS Pool</entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+              </row>
+             <row>
+                <entry>shadow cas pool wait time</entry>
+                <entry>A shadow cas pool is established for services which are Cas Multipliers.  
+                  This is the time spent waiting for a CAS to become available in the Shadow CAS Pool.</entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+              </row>
+              <row>
+                <entry>time spent in CM getNext</entry>
+                <entry>The time spent inside Cas Multipliers, getting another CAS.  
+                  This time (doesn't include / includes ????)
+                  the time 
+                  spent waiting for a CAS to become available in the CAS Pool waiting for a CAS to become available in the CAS Pool</entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+              </row>
+              <row>
+                <entry>process thread count</entry>
+                <entry>The number of threads available to process requests (number
+                  of instances of a primitive)</entry>
+                <entry>count</entry>
+                <entry>const</entry>
+              </row>
+              <row>
+                <entry>reply thread count</entry>
+                <entry>The number of threads available to process replies</entry>
+                <entry>count</entry>
+                <entry>const</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>        
+      </section>
+
+      <section id="ugr.async.mt.jmx_monitoring.service.internal.queues">
+        <title>Co-located Service Queues</title>
+        <para>Co-located services use light-weight, internal (not JMS) queues.  
+          These have similar measures as are used with JMS queues, and include
+          these measures for both the input queues and the reply (output) queues:
+          <informaltable frame="all">
+            <tgroup cols="4" colsep="1" rowsep="1">
+              <colspec colname="c1" colwidth="2*"/>
+              <colspec colname="c2" colwidth="5*"/>
+              <colspec colname="c3" colwidth="1*"/>
+              <colspec colname="c4" colwidth="1*"/>
+              <thead>
+                <row>
+                  <entry align="center">Name</entry>
+                  <entry align="center">Description</entry>
+                  <entry align="center">Units</entry>
+                  <entry align="center">Notes</entry>
+                </row>
+              </thead>
+              <tbody>            
+                <row>
+                  <entry>consumer count</entry>
+                  <entry>The number of threads configured to read the queue</entry>
+                  <entry>count</entry>
+                  <entry>const</entry>
+                </row>
+                <row>
+                  <entry>dequeue count</entry>
+                  <entry>The number of CASes that have been read from this queue</entry>
+                  <entry>count</entry>
+                  <entry>acc</entry>
+                </row>
+                <row>
+                  <entry>queue size</entry>
+                  <entry>The number of CASes in the queue</entry>
+                  <entry>count</entry>
+                  <entry>inst</entry>
+                </row>
+              </tbody>
+            </tgroup>
+          </informaltable>   
+        </para>
+      </section>
+      
+      <section id="ugr.async.mt.jmx_monitoring.service.error">
+        <title>Service Error Measurements</title>
+        <informaltable frame="all">
+          <tgroup cols="4" colsep="1" rowsep="1">
+            <colspec colname="c1" colwidth="2*"/>
+            <colspec colname="c2" colwidth="5*"/>
+            <colspec colname="c3" colwidth="1*"/>
+            <colspec colname="c4" colwidth="1*"/>
+            <thead>
+              <row>
+                <entry align="center">Name</entry>
+                <entry align="center">Description</entry>
+                <entry align="center">Units</entry>
+                <entry align="center">Notes</entry>
+              </row>
+            </thead>
+            <tbody>            
+              <row>
+                <entry>process Errors</entry>
+                <entry>The number of process errors</entry>
+                <entry>count</entry>
+                <entry>acc</entry>
+              </row>
+              <row>
+                <entry>getMetadata Errors</entry>
+                <entry>The number of getMetadata errors</entry>
+                <entry>count</entry>
+                <entry>acc</entry>
+              </row>
+              <row>
+                <entry>cpc Errors</entry>
+                <entry>The number of Collection Process Complete (cpc) errors</entry>
+                <entry>count</entry>
+                <entry>acc</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>   
+      </section>
+      
+    </section>
+
+        <section id="ugr.async.mt.jmx_monitoring.client">
+          <title>Application Client information</title>
+          <para>This section describes monitoring
+            information provided by the UIMA AS Client APIs. 
+            Any code that uses the <xref linkend="ugr.ref.async.api.organization"></xref>, 
+            such as the example application
+            client <code>RunRemoteAsyncAE</code>, will have a set of these
+            JMX measures.  Currently no additional
+            tooling (beyond standard tools like <code>jconsole</code>) are provided to
+            view these.
+          </para>
+          
+          <section id="ugr.async.mt.jmx_monitoring.client.measures">
+            <title>Client Measures</title>
+          <informaltable frame="all">
+            <tgroup cols="4" colsep="1" rowsep="1">
+              <colspec colname="c1" colwidth="2*"/>
+              <colspec colname="c2" colwidth="5*"/>
+              <colspec colname="c3" colwidth="1*"/>
+              <colspec colname="c4" colwidth="1*"/>
+              <thead>
+                <row>
+                  <entry align="center">Name</entry>
+                  <entry align="center">Description</entry>
+                  <entry align="center">Units</entry>
+                  <entry align="center">Notes</entry>
+                </row>
+              </thead>
+              <tbody>
+                
+                <row>
+                  <entry>application Name</entry>
+                  <entry>A user-supplied string identifying the application</entry>
+                  <entry>string</entry>
+                  <entry>const</entry>
+                </row>
+                <row>
+                  <entry>service queue name</entry>
+                  <entry>The name of the service queue this client connects to</entry>
+                  <entry>string</entry>
+                  <entry>const</entry>
+                </row>
+                <row>
+                  <entry>serialization method</entry>
+                  <entry>either xmi or binary. This is the serialization the client will use to send
+                    CASes to the service, and also tells the service which serialization to use
+                    in sending the CASes back.</entry>
+                  <entry>string</entry>
+                  <entry>const</entry>
+                </row>
+                <row>
+                  <entry>cas pool size</entry>
+                  <entry>This client's cas pool size, limiting the number of simultaneous outstanding requests in process</entry>
+                  <entry>count</entry>
+                  <entry>const</entry>
+                </row>                      
+              <row>
+                <entry>total number of CASes processed</entry>
+                <entry>count of the total number of CASes sent from this client.  Note: in the case
+                  where the service is a Cas Multiplier, the "child" CASes are not included in this count.</entry>
+                <entry>count</entry>
+                <entry>acc</entry>
+              </row>
+  
+              <row>
+                <entry>total time to process</entry>
+                <entry>total thread time spent in processing all CASes, including time in remote delegates</entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+              </row>
+              <row>
+                <entry>average process time</entry>
+                <entry>total number of CASes processed / total time to process</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+              <row>
+                <entry>max process time</entry>
+                <entry>maximum thread time spent in processing a CAS, including time in remote delegates</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+  
+              <row>
+                <entry>total serialization time</entry>
+                <entry>total thread time spent in serializing, both to delegates 
+                  (and recursively, to their delegates) and replies back to senders</entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+              </row>
+              <row>
+                <entry>average serialization time</entry>
+                <entry>average thread time spent in serializing a CAS, both to delegates 
+                  (and recursively, to their delegates) and replies back to senders</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+              <row>
+                <entry>max serialization time</entry>
+                <entry>maximum thread time spent in serializing a CAS, both to delegates
+                  (and recursively, to their delegates) and replies back to senders</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+  
+              <row>
+                <entry>total deserialization time</entry>
+                <entry>total thread time spent in deserializing, both replies from delegates and CASes from upper
+                  level components being sent to lower level ones.</entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+              </row>
+              <row>
+                <entry>average deserialization time</entry>
+                <entry>average thread time spent in deserializing, both replies from delegates and CASes from upper
+                  level components being sent to lower level ones.</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+              <row>
+                <entry>max deserialization time</entry>
+                <entry>maximum thread time spent in deserializing, both replies from delegates and CASes from upper
+                  level components being sent to lower level ones.</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+  
+              <row>
+                <entry>total idle time</entry>
+                <entry>total wall clock time a top-level service thread has been idle since the thread was last used.
+                  If there is more than one service thread, this number is the sum.</entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+              </row>
+              <row>
+                <entry>average idle time</entry>
+                <entry>average wall clock time all top-level service threads have been idle since they were last used</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+              <row>
+                <entry>max idle time</entry>
+                <entry>maximum wall clock time a top-level service thread has been idle since the thread was last used</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+  
+              <row>
+                <entry>total time waiting for reply</entry>
+                <entry>total wall clock time, measured from the time a CAS is sent to the top-level queue, until that CAS
+                  is returned.  Any generated CASes from Cas Multipliers are not counted in this measurement.</entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+              </row>
+              <row>
+                <entry>average time waiting for reply</entry>
+                <entry>average wall clock time from the time a CAS is sent to the reply is received</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+              <row>
+                <entry>max time waiting for reply</entry>
+                <entry>maximum wall clock time from the time a CAS is sent to the reply is received</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+  
+              <row>
+                <entry>total response latency time</entry>
+                <entry>total wall clock time, measured from the time a CAS is sent to the top-level queue, including
+                  the serialization and deserialization times at the client, until that CAS
+                  is returned.  Any generated CASes from Cas Multipliers are not counted in this measurement.</entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+              </row>
+              <row>
+                <entry>average response latency time</entry>
+                <entry>average wall clock time, measured from the time a CAS is sent to the top-level queue, including
+                  the serialization and deserialization times at the client, until that CAS
+                  is returned.</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+              <row>
+                <entry>max response latency time</entry>
+                <entry>maximum wall clock time, measured from the time a CAS is sent to the top-level queue, including
+                  the serialization and deserialization times at the client, until that CAS
+                  is returned.</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+              
+              <row>
+                <entry>total time waiting for CAS</entry>
+                <entry>total wall-clock time spent waiting for a 
+                  free CAS to be available in the client's CAS pool, before
+                  sending the CAS to input queue for the top level service. </entry>
+                <entry>milli seconds</entry>
+                <entry>acc</entry>
+              </row>
+              <row>
+                <entry>average time waiting for CAS</entry>
+                <entry>average wall-clock time spent waiting for a 
+                  free CAS to be available in the client's CAS pool</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+              <row>
+                <entry>max time waiting for CAS</entry>
+                <entry>maximum wall-clock time spent waiting for a 
+                  free CAS to be available in the client's CAS pool</entry>
+                <entry>milli seconds</entry>
+                <entry>inst</entry>
+              </row>
+              
+              <row>
+                <entry>total number of CASes requested</entry>
+                <entry>total number of CASes fetched from the CAS pool</entry>
+                <entry>count</entry>
+                <entry>acc</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>         
+      </section>
+      
+      <section id="ugr.async.mt.jmx_monitoring.client.error">
+        <title>Client Error Measurements</title>
+        <informaltable frame="all">
+          <tgroup cols="4" colsep="1" rowsep="1">
+            <colspec colname="c1" colwidth="2*"/>
+            <colspec colname="c2" colwidth="5*"/>
+            <colspec colname="c3" colwidth="1*"/>
+            <colspec colname="c4" colwidth="1*"/>
+            <thead>
+              <row>
+                <entry align="center">Name</entry>
+                <entry align="center">Description</entry>
+                <entry align="center">Units</entry>
+                <entry align="center">Notes</entry>
+              </row>
+            </thead>
+            <tbody>
+        
+              <row>
+                <entry>getMeta Timeout Error Count</entry>
+                <entry>number of times a getMeta timed out</entry>
+                <entry>count</entry>
+                <entry>acc</entry>
+              </row>
+             
+              <row>
+                <entry>getMeta Error Count</entry>
+                <entry>number of times a getMeta request returned with an error</entry>
+                <entry>count</entry>
+                <entry>acc</entry>
+              </row>
+             
+              <row>
+                <entry>process Timeout Error Count</entry>
+                <entry>number of times a process call timed out</entry>
+                <entry>count</entry>
+                <entry>acc</entry>
+              </row>
+             
+              <row>
+                <entry>process Error Count</entry>
+                <entry>number of times a process call returned with an error</entry>
+                <entry>count</entry>
+                <entry>acc</entry>
+              </row>
+              
+            </tbody>
+          </tgroup>
+        </informaltable>
+      </section>      
+    </section>  
+    </section> 
+    </section> 
+    
+    <section id="ugr.async.mt.jmx_sampling">
+      <title>Logging Sampled JMX information at intervals</title>
+      
+      <para>
+        A common tuning procedure is to run a deployment for a fairly long time with a
+        typical load, and to see what and where hot spots develop.  During this process, 
+        it is sometimes useful to convert accumulating measurements into averages, perhaps
+        averages per CAS processed.
+      </para>
+      <para>
+        UIMA AS includes a monitor component, org.apache.uima.aae.jmx.monitor.JmxMonitor, 
+        to sample JMX measures at specified intervals,
+        compute various averages, and write the results into the UIMA Log (or on the console 
+        if no log is configured).  The monitor program can be automatically enabled for any deployed service
+        by specifying <code>-D</code> parameters on the JVM command 
+        line which launches the service, or, it can be run stand-alone; when run stand-alone, you provide an
+        argument specifying the JVM it is to connect to to get the JMX information.  It only connects
+        to one JVM per run; typically, you would connect it to the top-level service.  
+      </para>
+      
+      <para>
+        The monitor outputs information for that service and its immediate delegates (local or remote); however, it
+        includes information from the complete recursive chain of delegates when computing its measures.  You can
+        get detailed monitoring for sub-services by starting or attaching a monitor to those sub-services.
+      </para>
+      
+      <para>
+        ActiveMQ uses Queue Brokers to manage the JMS queues used by UIMA AS.  These brokers have JMX information
+        that is useful in tuning applications.  The Monitor program identifies the Queue Broker being used by the 
+        service, and connects to it and incorporates information about queue lengths (both the input queue 
+        and the reply queue) into its measurements.
+      </para>
+      
+      <section id="ugr.async.mt.jmx_sampling.configuring">
+        <title>Configuring JVM to run the monitor</title>
+        <para>Specify the following JVM System Variable parameters to configure a UIMA AS Client or Service to enable 
+          sampling and logging of JMX measures:
+          <itemizedlist>
+            <listitem><para><code>-Duima.jmx.monitor.interval=1000</code> - (default is 1000) specifies the 
+              sampling interval in milliseconds</para></listitem>
+            <listitem><para><code>-Duima.jmx.monitor.formatter=&lt;CustomFormatterClassName></code></para></listitem>
+            <listitem><para><code>-Dcom.sun.management.jmxremote</code> - enable JMX (only needed for local monitoring, not needed if port is specified)</para></listitem>            
+            <listitem><para><code>-Dcom.sun.management.jmxremote.port=8009</code></para></listitem>
+            <listitem><para><code>-Dcom.sun.management.jmxremote.authenticate=false</code></para></listitem>
+            <listitem><para><code>-Dcom.sun.management.jmxremote.ssl=false</code></para></listitem>
+          </itemizedlist>
+          
+          This configures JMX to run on port 8009 with no authentication, and sets the sampling interval to 1 second,
+          and specifies a custom formatter class name.
+        </para>
+        
+        <para>There are two <code>formatter-classes</code> provided with UIMA AS:
+          <itemizedlist>
+            <listitem><para><code>org.apache.uima.aae.jmx.monitor.BasicUimaJmxMonitorListener - </code>
+              this is a multi-line formatter that formats for human-readable output</para></listitem>
+            <listitem><para><code>org.apache.uima.aae.jmx.monitor.SingleLineUimaJmxMonitorListener - </code>
+              this is a formatter that produces one line per interval, suitable for importing into 
+              a spreadsheet program.</para></listitem>           
+          </itemizedlist>
+          
+          Both of these log to the UIMA log at the INFO log level.
+        </para>
+        
+        <para>You can also write your own formatter.  The monitor provides an API to plug in a custom formatter 
+          for displaying service metrics. A custom formatter must implement JmxMonitorListener interface. 
+          See the method <code>startMonitor</code> in the class <code>UIMA_Service</code> for an
+          example of how custom JMX Listeners are plugged into the monitor. 
+        </para> 
+      </section> 
+      
+      <section id="ugr.async.mt.jmx_sampling.standalone">
+        <title>Running the Monitor program standalone</title>
+        <para>The monitor program can be started separately and pointed to a running UIMA AS Client or Service.
+          To start the program, invoke Java with the following classpath and parameters:
+          <itemizedlist>
+            <listitem>
+              <para>ClassPath:</para>
+              <itemizedlist>
+                <listitem><para>%UIMA_HOME%/lib/uimaj-as-activemq.jar</para></listitem>
+                <listitem><para>%UIMA_HOME%/lib/uimaj-as-core.jar</para></listitem>
+                <listitem><para>%UIMA_HOME%/lib/uima-core.jar</para></listitem>
+                <listitem><para>%UIMA_HOME%/apache-activemq/activemq-all-5.6.0.jar</para></listitem>
+              </itemizedlist>
+            </listitem>
+            <listitem>
+              <para>Parameters:</para>
+              <itemizedlist>
+                <listitem><para><code>-Djava.util.logging.config.file=%UIMA_HOME%/config/MonitorLogger.properties</code>
+                  - specifies the logging file where the information is written to</para></listitem>
+                <listitem><para><code>org.apache.uima.aae.jmx.monitor.JmxMonitor</code> -
+                  the class whose main method is invoked</para></listitem>
+                <listitem><para><code>uri</code> - the URI of the jmx instance to monitor.</para></listitem>
+                <listitem><para><code>interval</code> - the (optional) 
+                  sampling interval, in milliseconds (default = 1000)</para></listitem>
+              </itemizedlist>                 
+            </listitem>
+          </itemizedlist>
+        </para>
+        
+        <para>When run in this manner, it is not (currently) possible to specify the
+          log message formatting class; the multi-line output format is always used.</para>
+      </section>     
+      
+      <section id="ugr.async.mt.jmx_sampling.output">
+        <title>Monitoring output</title>
+        <para>The monitoring program combines information from the JMX measures, including the associated
+          Queue Broker, sampling accumulating measurements at the specified sampling interval, and produces
+          the following outputs:
+          
+          <informaltable frame="all">
+            <tgroup cols="3" colsep="1" rowsep="1">
+              <colspec colname="c1" colwidth="2*"/>
+              <colspec colname="c2" colwidth="5*"/>
+              <colspec colname="c3" colwidth="1*"/>
+              <thead>
+                <row>
+                  <entry align="center">Name</entry>
+                  <entry align="center">Description</entry>
+                  <entry align="center">Units</entry>>
+                </row>
+              </thead>
+              <tbody>
+                <row>
+                  <entry>Input queue depth</entry>
+                  <entry>number of CASes waiting to be processed by a service</entry>
+                  <entry>count</entry>
+                </row>
+                <row>
+                  <entry>Reply queue depth</entry>
+                  <entry>number of CASes returned to the client but not yet picked up by the client</entry>
+                  <entry>count</entry>
+                </row>
+                <row>
+                  <entry>CASes processed in interval</entry>
+                  <entry>Number of CASes processed in this sampling interval</entry>
+                  <entry>count</entry>
+                </row>
+                <row>
+                  <entry>Idle time in interval</entry>
+                  <entry>The total time this service has been idle during this interval</entry>
+                  <entry>milli seconds</entry>
+                </row>
+                <row>
+                  <entry>Analysis time in interval</entry>
+                  <entry>The sum of the times spent in analysis by the service during this interval, 
+                    including analysis time spent in delegates, recursively</entry>
+                  <entry>milli seconds</entry>
+                </row>
+                <row>
+                  <entry>Cas Pool free Cas Count</entry>
+                  <entry>Number of available CASes in the Cas Pool at the end of the interval</entry>
+                  <entry>count</entry>
+                </row>               
+              </tbody>
+            </tgroup>
+          </informaltable>
+        </para>
+        
+        <para>In addition to the performance metrics the monitor also provides basic service information:
+          <itemizedlist>
+            <listitem>
+              <para>Service name</para>
+            </listitem>
+            <listitem>
+              <para>Is service top level</para>
+            </listitem>
+            <listitem>
+              <para>Is service remote</para>
+            </listitem>
+            <listitem>
+              <para>Is service a cas multiplier</para>
+            </listitem>
+            <listitem>
+              <para>Number of processing threads</para>
+            </listitem>
+            <listitem>
+              <para>Service uptime (milliseconds)</para>
+            </listitem>
+          </itemizedlist> 
+        </para>
+      </section>
+    </section>
+  
+  <section id="ugr.async.mt.tuning">
+    <title>Tuning</title>
+        
+    <section id="ugr.async.mt.tuning.approach">
+      <title>Tuning procedure</title>
+      <para>This section is a cookbook of best practices for tuning a UIMA AS deployment.  The summary information
+        provided by the Monitor program is used to guide the tuning.</para>
+
+    <para>The main metric for detecting an overloaded service is the input queue depth. If it is growing or high, the service 
+           is not able to keep up with the load. There are more CASes arriving at the queue than the service can process. 
+           Consider increasing number of instances of the services within the JVM (if on a multi-core machine having 
+           additional capacity), or deploy additional instances of the service.</para>
+
+    <para>The main metric for detecting idle service is the idle time. If it is high, it can indicate that the service is not 
+          receiving enough CASes. This can be caused by a bottleneck in the service's client; supporting evidence for this
+          can be a high reply queue depth for the client - indicating the client is overloaded. 
+          If the idle time is zero, the service may be saturated; adding more instances could
+          relieve a bottleneck.</para>
+
+    <para>A CasPool free Cas Count of 0 can point to a bottleneck in a service's client; supporting
+      evidence for this can be a high idle time. In this case, the service does not have enough CASes in its pool and is 
+          forced to wait. Remember that a CAS is not returned to the Service's CAS pool until the client 
+          (which can be a parent asynchronous aggregate) signals it can be.
+          A typical reason is a slow client (look for evidence such as a high reply queue depth). Consider 
+          incrementing service's Cas pool and check the client's metrics to determine a reason why it is slow.</para>
+     
+    <para>An asynchronous system must have something that limits the generation of
+       new work to do. CasPools are the mechanism used by UIMA AS to do this.
+       Also, because CASes can have large memory requirements, it is
+       important to limit the number and sizes of CASes in a process.</para>     
+      
+    </section>
+
+    <section id="ugr.async.mt.tuning.settings">
+      <title>Tuning Settings</title>
+      <para>This section has a list of the tuning parameters and a description of what they do and how they interact.</para>
+      <informaltable frame="all">
+        <tgroup cols="2" colsep="1" rowsep="1">
+          <colspec colname="c1" colwidth="2*"/>
+          <colspec colname="c2" colwidth="4*"/>
+          <thead>
+            <row>
+              <entry align="center">Name</entry>
+              <entry align="center">Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>number of services on different machines started</entry>
+              <entry>You can adjust the number of machines assigned to a particular service,
+                even dynamically, by just starting / stopping additional servers that specify
+                the same input queue.</entry>
+            </row>
+            <row>
+              <entry>number of instances of a service</entry>
+              <entry>This is similar to the number of services on different machines started, above, 
+                but specifies replication of an AS Primitive within one JVM.  This is useful for making
+                use of multi-core machines sharing a common memory - large tables that might be 
+                part of the analysis algorithm can be shared by all instances.</entry>
+            </row>
+            <row>
+              <entry>CAS pool size</entry>
+              <entry>This size limits the number of CASes being processed asynchronously.</entry>
+            </row>
+            <row>
+              <entry>casMultiplier poolSize</entry>
+              <entry>This size limits the number of CASes generated by a CAS Multiplier that are being processed asynchronously.</entry>
+            </row>
+            <row>
+              <entry>Service input queue prefetch</entry>
+              <entry>If set greater than 0, allows up to "n" CASes to be pulled into one service provider, at a time.
+                This can increase throughput, but can hurt latency, since one service may have several CASes pulled into it,
+                queued up, while another instance of the service could be "starved" and be sitting there idle. </entry>
+            </row>
+            <row>
+              <entry>Specifying async="true"/"false" on an aggregate</entry>
+              <entry>The default is false, because there is less overhead (no queues are set up, etc.).  Setting this to 
+                "true" allows multiple CASes to flow simultaneously in the aggregate.</entry>
+            </row>
+            <row>
+              <entry>remoteReplyQueueScaleout</entry>
+              <entry>This parameter indicates the number of threads that will be deployed to read from the remote reply queue.
+                Set to > 1 if deserialization time of replies is a bottleneck.</entry>
+            </row>
+                      
+          </tbody>
+        </tgroup>
+      </informaltable>     
+      
+    </section>
+    
+    </section>
+
+
+    <section id="ugr.async.mt.debugging">
+	    <title>Debugging</title>
+
+		<para>One of the strongest UIMA features is the ability to develop and
+			debug components in isolation from each other, and then to incrementally
+			combine components and scaleout complexity. All that is needed to exercise
+			each configuration are one or more appropriate input CASes.
+		</para>
+	
+		<para>It is strongly advised to first test UIMA components in the core UIMA 
+			environment with a variety of input CASes. If the entire 
+			application will not fit in a single process, deploy remote delegates as
+			UIMA AS primitives with only a single instance
+			(see <xref linkend="ugr.async.ov.concepts.deploying.multiples"></xref>),
+			and access them via JMS service descriptors 
+			(see <xref linkend="ugr.async.ov.concepts.jms_descriptor"/>). 
+			Run as much input data thru this "single-threaded" configuration as needed 
+			to eliminate most "algorithmic" errors and to measure performance against 
+			analysis time objectives. Thread safety and analysis
+			ordering issues can then be addressed separately.</para> 
+	
+		<para><emphasis role="bold">Thread safety bugs.</emphasis> Components intended to be run 
+			multi-threaded should first be deployed as a multiple instance UIMA AS service 
+			(again see <xref linkend="ugr.async.ov.concepts.deploying.multiples"></xref>),
+			and fed their input CASes with a driver
+			capable of keeping all instances busy at the same time. A good application
+			is the sample driver $UIMA_HOME/bin/runRemoteAsyncAE; use the -p argument 
+			to increase the number of outstanding CAS requests sent to the target service.
+			When looking for threading problems try using http://findbugs.sourceforge.net/. 
+			In addition to looking for exceptions caused by thread unsafe code, check that
+			the single and multi-threaded analysis results are the same.
+		</para>
+
+		<para><emphasis role="bold">Analysis ordering bugs.</emphasis>
+			In a core UIMA aggregate CASes are processed by each delegate in input order.
+			This relationship changes for the same aggregate deployed asynchronously if one of the delegates
+			is replicated, as CASes are progressed in parallel and then progress thru the subsequent aggregate
+			flow in a different order then they are received.
+			Similarly with a delegate CasMultiplier in a core UIMA aggregate each child CAS is processed 
+			to completion before the next child CAS is started and the parent CAS is processed last.
+			When running asynchronously the parent CAS 
+			can arrive at downstream components ahead of its children because the parent
+			is released from a CasMultiplier immediately after the last child is created.
+			For applications which require all children to be processed before their parent,
+			use	the processParentLast flag (see	<xref linkend="ugr.ref.async.deploy.descriptor.ae"></xref>).
+		</para>
+
+		<para><emphasis role="bold">Timing issues.</emphasis>
+			Invariably with complex analytics, some components will be slower and some artifacts 
+			will take longer to process than desired. Making performance improvements relies on
+			identifying components running slower than expected and capturing the slow-running artifacts  
+			to study in detail. 
+		</para>
+
+	    <section id="ugr.async.mt.debugging.tracing">
+	      <title>Error Reporting and Tracing</title>
+	      <para>After the system is scaled out and substantially more data is being processed
+	      	it is likely that additional errors will occur.
+	      </para>
+
+	      <para>Java errors at any component level
+			are propagated back to the component originating the request
+		    (unless suppressed by UIMA AS error handling options, 
+		    see <xref linkend="ugr.async.eh.error_handling_overview"></xref>).
+		    The error stack traces the call chain of UIMA AS components, within
+		    colocated aggregate components and across remote services which are 
+		    shared by multiple clients. Some errors can be resolved with this
+		    information alone.
+			</para>
+
+	      <para>If process timeouts are not used 
+		    (see <xref linkend="ugr.ref.async.deploy.descriptor.errorconfig"></xref>)
+		    an asynchronous system can hang if one analysis step somewhere in
+		    the system has hung. Given many CASes in process at the same time it can
+		    be useful to create a custom trace of CAS activity by appropriate logging
+		    in <emphasis role="bold">a custom flow controller</emphasis>. 
+		    Such logging would have a unique identifier in every CAS,
+			usually a singleton FeatureStructure with a unique String feature. Identifiers
+			for child CASes should include some reference to the CasMultiplier they were
+			created from as well as their parent CAS.
+		  </para>
+
+		  <para>The flow controller is also the ideal place to measure timing statistics
+		  	for components of interest. Global stats can easily be measured using the 
+		  	time between flow steps, and time
+		  	thresholds used to flag specific CASes causing problems. Again the unique
+		  	CAS identifier can be quite useful here.
+		  </para>
+
+	    </section>
+	
+	    <section id="ugr.async.mt.debugging.caslogging">
+	      <title>CAS Logging</title>
+	      <para>Within a UIMA AS asynchronous aggregate, CASes can be saved before sending to any local or remote 
+	        	delegate and later used to reproduce a problem in a simple unit testing environment.
+	        	Control of CAS logging is done via Java properties:
+	      </para>
+	        <informaltable frame="all">
+	          <tgroup cols="2" colsep="1" rowsep="1">
+	            <colspec colname="c1" colwidth="1*"/>
+	            <colspec colname="c2" colwidth="1*"/>
+	            <thead>
+	              <row>
+	                <entry align="center">Property</entry>
+	                <entry align="center">Description</entry>
+	              </row>
+	            </thead>
+	            <tbody>
+	        
+	              <row>
+	                <entry>UIMA_CASLOG_BASE_DIRECTORY</entry>
+	                <entry>optional; this is the directory under which sub-directories with
+	                	XmiCas files will be created. If not specified, the process's current directory 
+	                	will be the base.</entry>
+	              </row>
+
+	              <row>
+	                <entry>UIMA_CASLOG_COMPONENT_ARRAY</entry>
+	                <entry>This is a space separated list of delegates keys. If a
+						delegate is nested inside a co-located async aggregate, the name would include the key
+						name of the aggregate, e.g. "someAggName/someDelName". The XmiCas files will then be
+						written into $UIMA_CASLOG_BASE_DIRECTORY/someAggName-someDelName/</entry>
+	              </row>
+
+	              <row>
+	                <entry>UIMA_CASLOG_TYPE_NAME</entry>
+	                <entry>optional; this is the name of a FeatureStructure in the CAS
+	                	containing a unique string to use to name each XmiCas file. If not specified, XmiCas
+	                	file name will be N.xmi, where N is the time in microseconds since the component was
+	                	initialized.</entry>
+	              </row>
+
+	              <row>
+	                <entry>UIMA_CASLOG_FEATURE_NAME</entry>
+	                <entry>optional unless the TYPE_NAME is specified; this parameter
+	                	gives the string feature to use. If the string value contains one or more
+	                	"/" characters only the text after the last "/" will be used.</entry>
+	              </row>
+
+	              <row>
+	                <entry>UIMA_CASLOG_VIEW_NAME</entry>
+	                <entry>optional; if the TYPE_NAME and FEATURE_NAME parameters are specified 
+	                    this string selects the CAS view used to access the FeatureStructure with 
+	                    unique string feature.</entry>
+	              </row>
+
+	            </tbody>
+	          </tgroup>
+	        </informaltable>
+	    </section>
+
+  </section>
+  
+  <!--section id="ugr.async.mt.limits">
+    <title>Limitations</title>
+    <para>The current (2.3.0) implementation has the following limitations:
+      <itemizedlist>
+        <listitem><para>Monitoring program</para>
+          <itemizedlist>
+            <listitem><para>The monitoring program reads the JMS Queue Broker URL 
+              from the configuration information provided by JMX for the UIMA AS Service
+              being monitored.  It uses this information to connect to JMX on that broker, but
+              currently assumes that JMX is set up on the default port (1099).  This is 
+              currently hardcoded into the Monitor program, so be aware of this if you 
+              change the port number for JMX on the JMS Queue Broker (a parameter in 
+              ActiveMQ's configuration for the broker).
+            </para></listitem>
+            <listitem><para>When the Monitor program is run as a stand-alone program, 
+              it is not (currently) possible to specify alternatives for the
+              log message formatting class; the multi-line output format is always used.</para></listitem>
+          </itemizedlist>      
+        </listitem>        
+      </itemizedlist>
+    </para>
+  </section-->
+
+</chapter>

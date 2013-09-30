@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+	<!--
+	 ***************************************************************
+	 * Licensed to the Apache Software Foundation (ASF) under one
+	 * or more contributor license agreements.  See the NOTICE file
+	 * distributed with this work for additional information
+	 * regarding copyright ownership.  The ASF licenses this file
+	 * to you under the Apache License, Version 2.0 (the
+	 * "License"); you may not use this file except in compliance
+	 * with the License.  You may obtain a copy of the License at
+         *
+	 *   http://www.apache.org/licenses/LICENSE-2.0
+	 * 
+	 * Unless required by applicable law or agreed to in writing,
+	 * software distributed under the License is distributed on an
+	 * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+	 * KIND, either express or implied.  See the License for the
+	 * specific language governing permissions and limitations
+	 * under the License.
+	 ***************************************************************
+   -->
+   
+<analysisEngineDescription xmlns="http://uima.apache.org/resourceSpecifier">
+  <frameworkImplementation>org.apache.uima.java</frameworkImplementation>
+  <primitive>false</primitive>
+  <delegateAnalysisEngineSpecifiers>
+    
+    <delegateAnalysisEngine key="TestMultiplier">
+      <import location="../multiplier/SimpleCasGenerator.xml"/>
+    </delegateAnalysisEngine>
+
+
+      <delegateAnalysisEngine key="NoOp">
+      <import location="NoOpAnnotator.xml"/>
+    </delegateAnalysisEngine>
+  
+  </delegateAnalysisEngineSpecifiers>
+  
+  <flowController key="FlowController">
+     <import location="../flow/BuggyAdvancedFixedFlowController.xml" /> 
+  </flowController>
+  
+  
+  <analysisEngineMetaData>
+    <name>Test Aggregate TAE</name>
+    <description>Detects Nothing</description>
+    <configurationParameters>
+          <configurationParameter>
+        <name>Flow</name>
+        <description> Specifies the flow. This is an array of strings where each string is either a single Analysis
+          Engine key or a comma-separated list of Analysis Engine keys that should be executed in parallel.
+          </description>
+        <type>String</type>
+        <multiValued>true</multiValued>
+        <mandatory>true</mandatory>
+        <overrides>
+          <parameter>FlowController/Flow</parameter>
+        </overrides>
+      </configurationParameter>
+      
+      <configurationParameter>
+        <name>AllowContinueOnFailure</name>
+        <description/>
+        <type>String</type>
+        <multiValued>true</multiValued>
+        <overrides>
+          <parameter>FlowController/AllowContinueOnFailure</parameter>
+        </overrides>
+      </configurationParameter>
+    </configurationParameters>
+    
+    <configurationParameterSettings>
+      <!-- This specifies the flow -->
+      <nameValuePair>
+        <name>Flow</name>
+        <value>
+          <array>
+            <string>TestMultiplier</string>
+            <string>NoOp</string>
+          </array>
+        </value>
+      </nameValuePair>
+      
+      <!-- This specifies for which AEs we can continue when an error occurs -->
+      <nameValuePair>
+        <name>AllowContinueOnFailure</name>
+        <value>
+          <array>
+            <string>TestMultiplier</string>
+          </array>
+        </value>
+      </nameValuePair>
+    </configurationParameterSettings>
+
+
+
+
+
+    <flowConstraints>
+      <fixedFlow>
+        <node>TestMultiplier</node>
+        <node>NoOp</node> 
+      </fixedFlow>
+    </flowConstraints>
+    <capabilities>
+      <capability>
+        <inputs/>
+        <outputs>
+        </outputs>
+        <languagesSupported>
+          <language>en</language>
+        </languagesSupported>
+      </capability>
+    </capabilities>
+	<operationalProperties>
+		<modifiesCas>true</modifiesCas>
+		<multipleDeploymentAllowed>true</multipleDeploymentAllowed>
+		<outputsNewCASes>false</outputsNewCASes>
+	</operationalProperties>
+  </analysisEngineMetaData>
+</analysisEngineDescription>

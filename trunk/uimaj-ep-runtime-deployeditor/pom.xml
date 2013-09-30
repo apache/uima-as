@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.    
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>org.apache.uima</groupId>
+    <artifactId>uima-as-parent</artifactId>
+    <version>2.4.2</version>
+    <relativePath>../uima-as-parent/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>uimaj-ep-runtime-deployeditor</artifactId>
+  <packaging>jar</packaging>
+  <version>2.4.2</version>
+  <name>Apache UIMA-AS Eclipse Plugin: ${project.artifactId}</name>
+  <description>Bundles the uima-as runtime parts needed for the deploy editor extension to the CDE, as a fragment on top of the main uima runtime</description>
+  <url>${uimaWebsiteUrl}</url>
+
+  <!-- Special inheritance note
+       even though the <scm> element that follows is exactly the 
+       same as those in super poms, it cannot be inherited because 
+       there is some special code that computes the connection elements
+       from the chain of parent poms, if this is omitted. 
+       
+       Keeping this a bit factored allows cutting/pasting the <scm>
+       element, and just changing the following two properties -->  
+  <scm>
+    <connection>
+      scm:svn:http://svn.apache.org/repos/asf/uima/uima-as/tags/-rc1/uimaj-ep-runtime-deployeditor
+    </connection>
+    <developerConnection>
+      scm:svn:https://svn.apache.org/repos/asf/uima/uima-as/tags/-rc1/uimaj-ep-runtime-deployeditor
+    </developerConnection>
+    <url>
+      http://svn.apache.org/viewvc/uima/uima-as/tags/-rc1/uimaj-ep-runtime-deployeditor
+    </url>
+  </scm>
+  
+  <properties>
+    <uimaScmProject>${project.artifactId}</uimaScmProject>
+    <postNoticeText>${ibmNoticeText}</postNoticeText>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-ep-runtime</artifactId>
+      <version>${uimajDependencyVersion}</version>
+      <!-- don't use provided scope here, because then
+           eclipse:eclipse is set up to ref the uimaj-ep-runtime
+           project directly, and it has no content
+           "compile" makes eclipse:eclipse ref the
+           jar that maven built in the local repository -->
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.core</groupId>
+      <artifactId>variables</artifactId>
+      <version>3.1.100-v20060605</version>
+      <scope>provided</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+
+    <finalName>org.apache.uima.runtime.fragments.deployeditor_${parsedVersion.osgiVersion}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <configuration>
+          <instructions>
+            <!-- turn off "uses" generation because Eclipse 3.2.x doesn't work with them -->
+            <_nouses>true</_nouses>
+            <Export-Package>
+              org.apache.uima.aae.deployment,
+              org.apache.uima.aae.deployment.impl,
+              org.apache.uima.tools.debug.util
+            </Export-Package>
+
+            <Bundle-SymbolicName>org.apache.uima.runtime.fragments.deployeditor;singleton:=true</Bundle-SymbolicName>
+            <!-- Uncomment Line below for the actual release -->
+            <!-- Fragment-Host>org.apache.uima.runtime;bundle-version="${parsedVersion.osgiVersion}"</Fragment-Host -->
+            <!-- Remove below line for the actual release -->
+            <Fragment-Host>org.apache.uima.runtime;bundle-version="2.4.2"</Fragment-Host>
+          </instructions>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+</project>

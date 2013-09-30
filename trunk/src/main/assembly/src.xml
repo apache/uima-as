@@ -1,0 +1,243 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.    
+-->
+
+<!-- no longer used - instead, we use 
+     apache release standard source-release.zip -->
+
+<assembly>
+  <id>src</id>
+  <formats>
+    <format>tar.gz</format>
+    <!-- this next format is very slow to generate, 
+         and gives little advantage over .gz -->
+    <!--format>tar.bz2</format-->  
+    <format>zip</format>
+  </formats>
+  
+  <baseDirectory>apache-uima-as</baseDirectory>
+  <includeBaseDirectory>true</includeBaseDirectory>
+  
+  <fileSets>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>uima-as</outputDirectory>
+      <includes>
+        <include>src/**</include>
+        <include>pom.xml</include>
+      </includes>
+      <excludes>
+        <!--exclude>src/main/readme/**</exclude-->
+        <exclude>src/**/*.sh</exclude>
+        <exclude>src/main/apache-activemq-5.4.1/bin/**</exclude>
+      </excludes>
+      <fileMode>644</fileMode>
+    </fileSet>
+
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>uima-as</outputDirectory>
+      <includes>
+        <include>src/**/*.sh</include>
+    <!-- marks scripts, .so files as executable 
+         skip .bat .jar .conf and .jnilib -->
+        <include>src/main/apache-activemq-5.4.1/bin/**</include>
+      </includes>
+      <excludes>
+        <exclude>src/main/apache-activemq-5.4.1/bin/**/*.bat</exclude>
+        <exclude>src/main/apache-activemq-5.4.1/bin/**/*.jar</exclude>
+        <exclude>src/main/apache-activemq-5.4.1/bin/**/*.conf</exclude>
+        <exclude>src/main/apache-activemq-5.4.1/bin/**/*.jnilib</exclude>        
+      </excludes>
+      <fileMode>755</fileMode>
+    </fileSet>
+
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>uima-as</outputDirectory>
+      <includes>
+        <include>src/main/apache-activemq-5.4.1/bin/**/*.bat</include>
+        <include>src/main/apache-activemq-5.4.1/bin/**/*.jar</include>
+        <include>src/main/apache-activemq-5.4.1/bin/**/*.conf</include>
+        <include>src/main/apache-activemq-5.4.1/bin/**/*.jnilib</include>        
+      </includes>
+      <fileMode>644</fileMode>
+    </fileSet>
+            
+    <fileSet>
+      <directory>src/main/readme</directory>
+      <excludes>
+        <exclude>README</exclude>
+        <exclude>LICENSE</exclude>
+        <exclude>NOTICE</exclude>
+      </excludes>
+            <!-- to get things into the base dir, use this form
+           If you use <outputDirectory>.</outputDirectory> - 
+           it also puts into the base dir, but creates an
+           extra (empty) version of the base dir - probably 
+           a bug. -->
+      <outputDirectory/>
+      <fileMode>644</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/readme_src</directory>
+      <!-- to get things into the base dir, use this form
+           If you use <outputDirectory>.</outputDirectory> - 
+           it also puts into the base dir, but creates an
+           extra (empty) version of the base dir - probably 
+           a bug. -->
+      <outputDirectory/>
+      <fileMode>644</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>../uima-as-docbooks</directory>
+      <outputDirectory>uima-as-docbooks</outputDirectory>
+      <excludes>
+        <exclude>target/**</exclude>
+        <exclude>.*/**</exclude>   
+      </excludes>
+      <fileMode>644</fileMode>
+    </fileSet>   
+    <!--fileSet>
+      <directory>../uima-docbook-tool</directory>
+      <outputDirectory>uima-docbook-tool</outputDirectory>
+      <includes>
+        <include>build/**</include>
+        <include>catalog/**</include>
+        <include>properties/**</include>
+        <include>styles/**</include>
+        <include>tools/common-lib/**</include>
+        <include>tools/fop-versions/fop-0.95/fop-config.xml</include>
+        <include>xinclude.mod</include> 
+        <include>README</include>
+        <include>README.FIRST</include>
+      </includes>
+      <fileMode>644</fileMode>
+    </fileSet-->
+    <fileSet>
+      <directory>../uimaj-ep-deployeditor</directory>
+      <outputDirectory>uimaj-ep-deployeditor</outputDirectory>
+      <includes>
+        <include>src/**</include>
+        <include>pom.xml</include>
+        <include>META-INF</include>
+        <include>icons/**</include>
+        <include>plugin.xml</include>       
+      </includes>
+      <fileMode>644</fileMode>
+    </fileSet>  
+    <fileSet>
+      <directory>../uimaj-ep-runtime-deployeditor</directory>
+      <outputDirectory>uimaj-ep-runtime-deployeditor</outputDirectory>
+      <includes>
+        <include>src/**</include>
+        <include>pom.xml</include>
+        <include>META-INF</include>
+      </includes>
+      <fileMode>644</fileMode>
+    </fileSet> 
+    <fileSet>
+      <directory>../uimaj-eclipse-feature-deployeditor</directory>
+      <outputDirectory>/uimaj-eclipse-feature-deployeditor</outputDirectory>
+      <excludes>
+        <exclude>target/**</exclude>
+        <exclude>.*/**</exclude>   
+      </excludes>
+      <fileMode>644</fileMode>
+    </fileSet>            
+    <fileSet>
+      <directory>../uimaj-as-osgi-runtime</directory>
+      <outputDirectory>uimaj-as-osgi-runtime</outputDirectory>
+      <includes>
+        <include>pom.xml</include>
+      </includes>
+      <fileMode>644</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>.</outputDirectory>
+      <includes>
+        <include>pom.xml</include>
+        <include>eclipse-plugin-superPom/*</include>
+      </includes>
+      <fileMode>644</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>../uimaj-as-activemq</directory>
+      <outputDirectory>uimaj-as-activemq</outputDirectory>
+      <includes>
+        <include>src/**</include>
+        <include>pom.xml</include>
+      </includes>
+      <fileMode>644</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>../uimaj-as-camel</directory>
+      <outputDirectory>uimaj-as-camel</outputDirectory>
+      <includes>
+        <include>src/**</include>
+        <include>pom.xml</include>
+      </includes>
+      <fileMode>644</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>../uimaj-as-core</directory>
+      <outputDirectory>uimaj-as-core</outputDirectory>
+      <includes>
+        <include>src/**</include>
+        <include>pom.xml</include>
+      </includes>
+      <fileMode>644</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>../uimaj-as-jms</directory>
+      <outputDirectory>uimaj-as-jms</outputDirectory>
+      <includes>
+        <include>src/**</include>
+        <include>pom.xml</include>
+      </includes>
+      <fileMode>644</fileMode>
+    </fileSet>
+    <!-- next is base UIMA - no longer part of UIMA-AS distribution as of 2.3.0 -->
+    <!-- fileSet>
+      <directory>../uimaj</directory>
+      <outputDirectory>uimaj</outputDirectory>
+      <includes>
+        <include>eclipse-plugin-superPom/*</include>
+        <include>pom.xml</include>
+      </includes>
+      <fileMode>644</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>../uimaj-distr</directory>
+      <outputDirectory>uimaj-distr</outputDirectory>
+      <includes>
+        <include>src/**</include>
+        <include>pom.xml</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>../uimaj-examples</directory>
+      <outputDirectory>uimaj-examples</outputDirectory>
+      <includes>
+        <include>src/**</include>
+        <include>pom.xml</include>
+      </includes>
+    </fileSet-->  
+  </fileSets>  
+</assembly>

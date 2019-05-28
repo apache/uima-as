@@ -32,7 +32,7 @@ import org.apache.uima.util.Level;
 /**
  * 
  * Uima message implementation of {@link UimaMessageDispatcher}. It uses a Java's Executor framework
- * to pass Uima messages to a collocated Uima AS service. Each message is processed in a seperate
+ * to pass Uima messages to a collocated Uima AS service. Each message is processed in a separate
  * thread provided by the Executor.
  * 
  * */
